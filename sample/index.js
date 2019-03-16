@@ -1,4 +1,4 @@
-//  ██████╗ █████╗ ███╗   ██╗██╗   ██╗ █████╗ ███████╗     █████╗ ██████╗ ██╗
+//   ██████╗ █████╗ ███╗   ██╗██╗   ██╗ █████╗ ███████╗     █████╗ ██████╗ ██╗
 //  ██╔════╝██╔══██╗████╗  ██║██║   ██║██╔══██╗██╔════╝    ██╔══██╗██╔══██╗██║
 //  ██║     ███████║██╔██╗ ██║██║   ██║███████║███████╗    ███████║██████╔╝██║
 //  ██║     ██╔══██║██║╚██╗██║╚██╗ ██╔╝██╔══██║╚════██║    ██╔══██║██╔═══╝ ██║
@@ -8,173 +8,115 @@
 // install packages
 const axios = require('axios');
 const h2p = require('html2plaintext');
-const { Course, Assignment }  = require('./canvas');
+const { Course, Assignment, ascii_art } = require('./canvas');
+
+//var access_token = "ACCESS TOKEN GOES HERE" // NEVER, EVER PUSH YOUR ACCESS TOKEN UP TO GITHUB
 
 var url = `https://templeu.instructure.com/api/v1/`;
 var courseURL = 'courses?enrollment_state=active&enrollment_type=student';
-//https://templeu.instructure.com/api/v1/courses/99570000000054796/assignments?access_token=9957~ZSG3nWPwk5CsmpSjxHO8NXLaJqPV57Sviljh19SP0aXzZED2yTDmCrES3dX9wocW
-// header with included access_token
+
 const headerOptions = {
   headers: { 
     Authorization: 'Bearer ' + access_token
   }
 };
 
-//var url = `https://canvas.instructure.com/login/oauth2/auth?client_id=XXX&response_type=code&state=YYY&redirect_uri=https://example.com/oauth_complete`
-
 var ignoreCourses = ['CIS Student Community Fall 2018', 'TU Alliance for Minority Participation (AMP) Program', 'Computer Science, Math, and Physics (CMP) Students'];
 
-function log(msg){
-  console.log(msg);
+/*******************************************************************************/
+/**************************** FUNCTION DECLARATIONS ****************************/
+/*******************************************************************************/
+const cyan = "\x1b[36m";
+const red = "\x1b[31m";
+const white = "\x1b[37m";
+const reset = "\x1b[0m";
+
+const log = function (msg, color = white){
+  console.log(color + "%s" + reset, msg);
 }
 
-// let getCourseIds = new Promise((resolve, reject) => {
-//   setTimeout(() => {
-//     //get course ids
-//     getCourses(courses => {
-//       formatCourses
-//     });
-//   },1000)
-// });
-
-
-function formatCourses(courses, by) {
+const formatCourses = function (courses, by) {
   var list;
   if(by == 'id'){
-    list = [];
-    log('\n')
+    list = []; // set list as empty array
+    // loop thru courses and if course is valid, add to array
     for (var i = 0; i < courses.length; i++) {
       if(!ignoreCourses.includes(courses[i].name)){
         list.push(courses[i].id);
-        //log(`${courses[i].name}  ${courses[i].id}`)
-        //log(courses[i])
       }
-      //log(courses[i].id)
     }
   }else if(by == 'name'){
-    list = '';
+    list = ''; // set list as empty string
     var name;
-    for (var i = 0; i < courses.length; i++) {
-      name = courses[i].name;
+    var valid = [];
+
+    // if courses are valid, add to array
+    var i;
+    for (i = 0; i < courses.length; i++) {
+      name = courses[i].name; 
+      //log(name) //debug 
       if (!ignoreCourses.includes(name)) {
         if (name.includes('-')) {
           name = name.split('-')[1];
         }
-        if(i == courses.length - 2) {
-            list += 'and ' + name + '.';
-        }else{
-          list += name.trim();
-          list += ', '
-        }
+        name = name.replace("&","and"); // Alexa cannot speak &
+        name = name.trim();
+        valid.push(name)
       }
     }
+    
+    // loop thru courses, and format it to string that will be spoken
+    for (i = 0; i < valid.length - 1; i++){
+      name = valid[i];
+      list += name + ', ';
+    }
+
+    list += 'and ' + valid[i] + '.'; // and <last course name>.
+    
   }
   return list;
 }
 
 
-function getCourses(callback) {
+const getCourses = function (callback) {
   return axios.get(url + courseURL, headerOptions)
   .then(response => {
-    // var courses = [];
-    // for(var i = 0; i < response.data.length; i++){
-    //   courses.push(new Course(response.data[i].id,response.data[i].name));
-    // }
-    //log(courses)
-    callback(response.data);
+    //log(response.data) //debug
+    var courses = [];
+    for(var i = 0; i < response.data.length; i++){
+      courses.push(new Course(response.data[i]));
+    }
+    //log(courses) //debug
+    callback(courses);
   });
 }
 
-function getAssignments(courseIDs,callback) {
-  //log(courseIDs)
-  var final = url + 'courses/' + courseIDs[0] + '/assignments';
-  log(final)
+const getAssignments = function (courseID,callback) {
+  var request = url + 'courses/' + courseID + '/assignments';
   //https://templeu.instructure.com/api/v1/courses/99570000000054796/assignments?access_token=9957~ZSG3nWPwk5CsmpSjxHO8NXLaJqPV57Sviljh19SP0aXzZED2yTDmCrES3dX9wocW
-  return axios.get(final, headerOptions)
+  return axios.get(request, headerOptions)
     .then(response => {
       var data = response.data;
-      //log(data);
-      callback(data);
+      var assignments = [];
+      for (let i = 0; i < data.length; i++){
+        assignments.push(new Assignment(data[i]));
+      }
+      //log(data); // debug
+      callback(assignments);
     });
 }
+/*******************************************************************************/
+/************************* END OF FUNCTION DECLARATIONS ************************/
+/*******************************************************************************/
 
 
-// function getAssignments(callback) {
-
-//   // YOU MUST UNDERSTAND HOW ASYNC/AWAIT works...
-//   // link here https://javascript.info/async-await
-
-//   // let promise = new Promise((resolve, reject) => {
-//   //   setTimeout(() => resolve("done!"), 1000)
-//   // });
-
-//   // let result = await promise;
-
-//   // in order to get assignments, we must first get the course ids.
-
-
-//   let courseIds = await getCourseIds
-
-//   axios.get(url)
-//     .then(response => {
-
-//       var assign, = [];
-//       var data = response.data;
-//       var name;
-//       for (var i = 0; i < data.length; i++) {
-
-//         a.push(data[i]);
-
-//         name = data[i].name; // nam
-
-//         if (name.includes('-')) {
-//           name = name.split('-')[1];
-//         }
-//         if (!name.includes(',') && !ignoreCourses.includes(name)) {
-//           courses.push(name.trim());
-//         }
-//       }
-//       callback(courses);
-//     });
-// }
-log("\n\n\n\HELLO WORLD");
-
+log(ascii_art, cyan);
+ 
 getCourses(courses => {
-  //var list = formatCourses(courses);
+  //var courseIDs = formatCourses(courses,'id');
   var speechText = 'You are currently enrolled in: ' + formatCourses(courses,'name');
   log(speechText);
-  // for(var i = 0; i < courses.length; i++){
-  //   console.log(courses[i].name);
-  // }
-}).catch(error => {
-  log("c notes" + error)
-});
 
-
-getCourses(courses => {
-  //var list = formatCourses(courses);
-  var courseIDs = formatCourses(courses,'id');
-  getAssignments(courseIDs, tasks => {
-    log(tasks[1])
-    //log(h2p(tasks[1].description));
-  }).catch(error => {
-    log('error ' + error);
-  })
 }).catch(error => {
-  log("c notes" + error)
+  log("Could not get courses. Error: " + error, red);
 });
-// const getCourses = () => {
-//   return axios.get(url + courseURL)
-// }
-// getCourses().then(res => {
-//   log(res.data);
-// }).catch(err => {
-//   log(err);
-// })
-// getAssignments(courses => {
-//   //var list = formatCourses(courses);
-//   var speechText = 'You are currently enrolled in: ' + formatCourses(courses);
-//   log(speechText);
-// });
-//var id = '99570000000051311';
-//var call = "https://canvas.instructure.com/api/v1/courses/99570000000051311/assignments";
