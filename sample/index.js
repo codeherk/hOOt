@@ -7,9 +7,10 @@
                                                                             
 // install packages
 const axios = require('axios');
-const h2p = require('html2plaintext');
 const { Course, Assignment, ascii_art } = require('./canvas');
 
+var access_token = "9957~ZSG3nWPwk5CsmpSjxHO8NXLaJqPV57Sviljh19SP0aXzZED2yTDmCrES3dX9wocW"; // byron
+//var access_token  = "9957~rsVxuwVd7HAPmPrVmy6JvCSZO3sb0u92WTLo7ek7xQ2082ibpXc00X3FQbCbSHeY"; // erik
 //var access_token = "ACCESS TOKEN GOES HERE" // NEVER, EVER PUSH YOUR ACCESS TOKEN UP TO GITHUB
 
 var url = `https://templeu.instructure.com/api/v1/`;
@@ -31,8 +32,13 @@ const red = "\x1b[31m";
 const white = "\x1b[37m";
 const reset = "\x1b[0m";
 
-const log = function (msg, color = white){
-  console.log(color + "%s" + reset, msg);
+const log = function (){
+  if(arguments.length == 1){
+    console.log(arguments[0]);
+  }else if(arguments.length == 2){
+    console.log(arguments[1] + arguments[0] + reset);
+  }
+
 }
 
 const formatCourses = function (courses, by) {
@@ -81,7 +87,7 @@ const formatCourses = function (courses, by) {
 const getCourses = function (callback) {
   return axios.get(url + courseURL, headerOptions)
   .then(response => {
-    //log(response.data) //debug
+    //log(response) //debug
     var courses = [];
     for(var i = 0; i < response.data.length; i++){
       courses.push(new Course(response.data[i]));
@@ -93,6 +99,7 @@ const getCourses = function (callback) {
 
 const getAssignments = function (courseID,callback) {
   var request = url + 'courses/' + courseID + '/assignments';
+  //log(request)
   //https://templeu.instructure.com/api/v1/courses/99570000000054796/assignments?access_token=9957~ZSG3nWPwk5CsmpSjxHO8NXLaJqPV57Sviljh19SP0aXzZED2yTDmCrES3dX9wocW
   return axios.get(request, headerOptions)
     .then(response => {
@@ -101,7 +108,9 @@ const getAssignments = function (courseID,callback) {
       for (let i = 0; i < data.length; i++){
         assignments.push(new Assignment(data[i]));
       }
-      //log(data); // debug
+      //log(data[0]);
+      //log(response); // debug
+      //log(assignments);
       callback(assignments);
     });
 }
@@ -118,5 +127,5 @@ getCourses(courses => {
   log(speechText);
 
 }).catch(error => {
-  log("Could not get courses. Error: " + error, red);
+  log("Could not get courses. " + error, red);
 });

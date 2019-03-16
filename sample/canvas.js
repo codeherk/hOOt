@@ -16,8 +16,9 @@ function Course(obj) {
 function Assignment(obj) {
     this.id = obj.id;
     this.name = obj.name;
-    this.description = h2p(obj.description).replace(/\r?\n|\r/g, " ");
-    this.due = new Date(obj.due_at);
+    this.description = obj.description ? h2p(obj.description).replace(/\r?\n|\r/g, " ") : null;
+    this.due = obj.due_at ? new Date(obj.due_at) : null; // ternary operator 
+    this.points_possible = obj.points_possible;
 }
 
 module.exports = {
