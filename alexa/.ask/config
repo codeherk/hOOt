@@ -1,0 +1,33 @@
+{
+  "deploy_settings": {
+    "default": {
+      "skill_id": "amzn1.ask.skill.b82613cd-3e68-449c-898b-2bc51c766e72",
+      "was_cloned": false,
+      "merge": {},
+      "resources": {
+        "manifest": {
+          "eTag": "88afa1d9823998cbb7bc39e9c01265e4"
+        },
+        "interactionModel": {
+          "en-US": {
+            "eTag": "6ac1a93fc10967eee5ee666fbc4a106b"
+          }
+        },
+        "lambda": [
+          {
+            "alexaUsage": [
+              "custom/default"
+            ],
+            "arn": "arn:aws:lambda:us-east-1:696734041478:function:getCourses",
+            "awsRegion": "us-east-1",
+            "codeUri": "lambda/custom",
+            "functionName": "getCourses",
+            "handler": "index.handler",
+            "revisionId": "670ed8a7-c2e3-4bce-ae3d-f8989dadc3ec",
+            "runtime": "nodejs8.10"
+          }
+        ]
+      }
+    }
+  }
+}
