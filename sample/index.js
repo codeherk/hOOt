@@ -9,8 +9,6 @@
 const axios = require('axios');
 const { Course, Assignment, ascii_art } = require('./canvas');
 
-var access_token = "9957~ZSG3nWPwk5CsmpSjxHO8NXLaJqPV57Sviljh19SP0aXzZED2yTDmCrES3dX9wocW"; // byron
-//var access_token  = "9957~rsVxuwVd7HAPmPrVmy6JvCSZO3sb0u92WTLo7ek7xQ2082ibpXc00X3FQbCbSHeY"; // erik
 //var access_token = "ACCESS TOKEN GOES HERE" // NEVER, EVER PUSH YOUR ACCESS TOKEN UP TO GITHUB
 
 var url = `https://templeu.instructure.com/api/v1/`;
@@ -38,63 +36,42 @@ const log = function (){
   }else if(arguments.length == 2){
     console.log(arguments[1] + arguments[0] + reset);
   }
-
 }
-
-const formatCourses = function (courses, by) {
-  var list;
-  if(by == 'id'){
-    list = []; // set list as empty array
-    // loop thru courses and if course is valid, add to array
-    for (var i = 0; i < courses.length; i++) {
-      if(!ignoreCourses.includes(courses[i].name)){
-        list.push(courses[i].id);
-      }
-    }
-  }else if(by == 'name'){
-    list = ''; // set list as empty string
-    var name;
-    var valid = [];
-
-    // if courses are valid, add to array
-    var i;
-    for (i = 0; i < courses.length; i++) {
-      name = courses[i].name; 
-      //log(name) //debug 
-      if (!ignoreCourses.includes(name)) {
-        if (name.includes('-')) {
-          name = name.split('-')[1];
-        }
-        name = name.replace("&","and"); // Alexa cannot speak &
-        name = name.trim();
-        valid.push(name)
-      }
-    }
-    
-    // loop thru courses, and format it to string that will be spoken
-    for (i = 0; i < valid.length - 1; i++){
-      name = valid[i];
-      list += name + ', ';
-    }
-
-    list += 'and ' + valid[i] + '.'; // and <last course name>.
-    
-  }
-  return list;
-}
-
 
 const getCourses = function (callback) {
   return axios.get(url + courseURL, headerOptions)
   .then(response => {
     //log(response) //debug
     var courses = [];
-    for(var i = 0; i < response.data.length; i++){
+    for(let i = 0; i < response.data.length; i++){
       courses.push(new Course(response.data[i]));
     }
     //log(courses) //debug
     callback(courses);
   });
+}
+
+const mapCourses = function (courses, by) {
+  courses = courses.filter((course) => !ignoreCourses.includes(course.name)); // only get courses we want
+  if(by == 'id'){
+    return courses.map(course => course.id);
+  }else if(by == 'name'){
+    return courses.map(course => course.name);
+  }
+  return list;
+}
+
+const coursesToString = function(courses){
+  var titles = mapCourses(courses,"name");
+  var list = ''; // set list as empty string
+  var i;  
+  // loop thru courses, and format it to string that will be spoken
+  for (i = 0; i < titles.length - 1; i++){
+    list += titles[i] + ', ';
+  }
+
+  list += 'and ' + titles[i] + '.'; // and <last course name>. 
+  return list;
 }
 
 const getAssignments = function (courseID,callback) {
@@ -114,6 +91,36 @@ const getAssignments = function (courseID,callback) {
       callback(assignments);
     });
 }
+
+const getUpcomingAssignments = function(courseID,callback){
+  var request = url + 'courses/' + courseID + '/assignments?bucket=upcoming';
+  return axios.get(request, headerOptions)
+    .then(response => {
+      var data = response.data;
+      var assignments = [];
+      for (let i = 0; i < data.length; i++){
+        assignments.push(new Assignment(data[i]));
+      }
+      //log(data[0]);
+      //log(response); // debug
+      //log(assignments);
+      callback(assignments);
+    });
+}
+const formatAssignments = function (tasks){
+  var list = [];
+  var detail;
+  for (let i = 0; i < tasks.length; i++){
+    detail = `You have ${tasks[i].name} `;
+    if(tasks[i].due){
+      detail += `that is due ${tasks[i].due}.`
+    }else{
+      detail += 'without a due date. Contact your professor for more info'
+    }
+    list.push(detail);
+  }
+  return list;
+}
 /*******************************************************************************/
 /************************* END OF FUNCTION DECLARATIONS ************************/
 /*******************************************************************************/
@@ -123,9 +130,18 @@ log(ascii_art, cyan);
  
 getCourses(courses => {
   //var courseIDs = formatCourses(courses,'id');
-  var speechText = 'You are currently enrolled in: ' + formatCourses(courses,'name');
+  var speechText = 'You are currently enrolled in: ' + coursesToString(courses);
   log(speechText);
-
+  //log(mapCourses(courses,'name')[0]);
+  var courseIDs = mapCourses(courses,'id');
+  log(courseIDs);
+  // get assignments for first course
+  getUpcomingAssignments(courseIDs[1], tasks => {
+    //log(tasks[0].description);
+    log(formatAssignments(tasks))
+  }).catch(error => {
+    log("Could not get assignments. " + error, red);
+  });
 }).catch(error => {
   log("Could not get courses. " + error, red);
 });
