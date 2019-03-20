@@ -11,7 +11,7 @@
  * for the gathering of JSON data from the Canvas LMS API.
  * Running the program on its own will result in the return of various JSON data
  * from the Canvas API.
- * Data depends on the provided Canvas access token.
+ * Received data depends on the provided Canvas access token.
  * @version 1.0
  * @author Byron Jenkins 
  * @author Erik Rosales
@@ -65,7 +65,7 @@ const log = function (){
 
 /**
  * Makes an HTTP GET request to Canvas LMS API.
- * Creates Course objects by parsing received JSON response.
+ * Creates Course objects by parsing received JSON response.M // only get courses we wantE
  * Passes array of Course objects to callback function.
  * @param {function} callback 
  */
@@ -82,6 +82,12 @@ const getCourses = function (callback) {
   });
 }
 
+/**
+ * Remove ignored courses from course list.
+ * Return list of either course names or course ids depending on 'by' param.
+ * @param {Course []} courses 
+ * @param {String} by 
+ */
 const mapCourses = function (courses, by) {
   courses = courses.filter((course) => !ignoreCourses.includes(course.name));
   if(by == 'id'){
@@ -92,6 +98,12 @@ const mapCourses = function (courses, by) {
   return list;
 }
 
+/**
+ * Get list of course names from 'courses' param.
+ * Format course list into easily spoken/displayed String.
+ * @param {Course []} courses 
+ * @returns {String} list of formatted course names.
+ */
 const coursesToString = function(courses){
   var titles = mapCourses(courses,"name");
   var list = ''; // set list as empty string
@@ -105,6 +117,14 @@ const coursesToString = function(courses){
   return list;
 }
 
+/**
+ * Makes an HTTP GET request to Canvas LMS API.
+ * Receives a response from API with all of a user's assignments for a course with the given course ID.
+ * Creates an array of Assignment objects based on API's response.
+ * Calls callback function, passing in Assignment array as param.
+ * @param {String} courseID 
+ * @param {function} callback 
+ */
 const getAssignments = function (courseID,callback) {
   var request = url + 'courses/' + courseID + '/assignments';
   //log(request)
@@ -123,6 +143,14 @@ const getAssignments = function (courseID,callback) {
     });
 }
 
+/**
+ * Makes an HTTP GET request to Canvas LMS API, specifying API returns upcoming assignments only.
+ * Receives a response from API with all of a user's upcoming assignments for a course with the given course ID.
+ * Creates an array of Assignment objects based on API's response.
+ * Calls callback function, passing in upcoming Assignment array as param.
+ * @param {String} courseID 
+ * @param {function} callback 
+ */
 const getUpcomingAssignments = function(courseID,callback){
   var request = url + 'courses/' + courseID + '/assignments?bucket=upcoming';
   return axios.get(request, headerOptions)
@@ -138,6 +166,13 @@ const getUpcomingAssignments = function(courseID,callback){
       callback(assignments);
     });
 }
+
+/**
+ * Create array of Assignments.
+ * Add assignments from task param. into new array adding due-date details.
+ * @param {Assignment []} tasks 
+ * @returns {Assignment []} list
+ */
 const formatAssignments = function (tasks){
   var list = [];
   var detail;

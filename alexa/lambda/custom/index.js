@@ -1,17 +1,39 @@
 /* eslint-disable  func-names */
 /* eslint-disable  no-console */
 
+
+/**
+ * This file is part of the hooT VUI system.
+ * It contains the intent functions and their related handlers
+ * for the Amazon Lambda function associated with the project.
+ * It also contains various other helper functions and variables.
+ * @version 1.0
+ * @author Byron Jenkins 
+ * @author Erik Rosales
+ * @author Kyle Lee
+ * @author Terrell Nowlin
+ * @author Brendan Connelly
+ */
+
+
+
+
 const Alexa = require('ask-sdk-core');
 const axios = require('axios');
 const {
   Course
 } = require('./canvas');
-
 //var access_token = "ACCESS TOKEN GOES HERE" // NEVER, EVER PUSH YOUR ACCESS TOKEN UP TO GITHUB
 
+// base URL for HTTP requests to the Canvas LMS API
 var url = `https://templeu.instructure.com/api/v1/`;
+// URL parameters for a courses request.
+// Filters HTTP request results to provide only actively enrolled courses.
 var courseURL = 'courses?enrollment_state=active&enrollment_type=student';
 
+/**
+ * For the addition of header options including access token to HTTP request
+ */
 const headerOptions = {
   headers: {
     Authorization: 'Bearer ' + access_token
@@ -22,6 +44,9 @@ var ignoreCourses = ['CIS Student Community Fall 2018', 'TU Alliance for Minorit
 var smallImgUrl = 'https://assets.pcmag.com/media/images/423653-instructure-canvas-lms-logo.jpg?width=333&height=245';
 var largeImgUrl = 'https://am02bpbsu4-flywheel.netdna-ssl.com/wp-content/uploads/2013/01/canvas_stack.jpg';
 
+/**
+ * 
+ */
 const LaunchRequestHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
