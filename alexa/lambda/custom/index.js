@@ -253,6 +253,7 @@ const LaunchRequestHandler = {
     return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
   },
   handle(handlerInput) {
+<<<<<<< HEAD
     if (handlerInput.requestEnvelope.context.System.user.accessToken === undefined) {
       return handlerInput.responseBuilder
         .speak("to start using this skill, please use the companion app to authenticate")
@@ -299,6 +300,16 @@ const LaunchRequestHandler = {
       });
       }
     },
+=======
+    const speechText = 'Welcome to Hoot for Canvas, how may I help you?';
+
+    return handlerInput.responseBuilder
+      .speak(speechText)
+      .reprompt(speechText)
+      .withSimpleCard('Hoot for Canvas', speechText)
+      .getResponse();
+  },
+>>>>>>> First commit
 };
 
 /**
