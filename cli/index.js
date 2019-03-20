@@ -4,17 +4,38 @@
 //  ██║     ██╔══██║██║╚██╗██║╚██╗ ██╔╝██╔══██║╚════██║    ██╔══██║██╔═══╝ ██║
 //  ╚██████╗██║  ██║██║ ╚████║ ╚████╔╝ ██║  ██║███████║    ██║  ██║██║     ██║
 //   ╚═════╝╚═╝  ╚═╝╚═╝  ╚═══╝  ╚═══╝  ╚═╝  ╚═╝╚══════╝    ╚═╝  ╚═╝╚═╝     ╚═╝
-                                                                            
+
+/**
+ * This file is part of the hooT VUI system.
+ * It is a command line program
+ * for the gathering of JSON data from the Canvas LMS API.
+ * Running the program on its own will result in the return of various JSON data
+ * from the Canvas API.
+ * Data depends on the provided Canvas access token.
+ * @version 1.0
+ * @author Byron Jenkins 
+ * @author Erik Rosales
+ * @author Kyle Lee
+ * @author Terrell Nowlin
+ * @author Brendan Connelly
+ */
+
+
 // install packages
 const axios = require('axios');
 const { Course, Assignment, ascii_art } = require('./canvas');
 
-
 //var access_token = "ACCESS TOKEN GOES HERE" // NEVER, EVER PUSH YOUR ACCESS TOKEN UP TO GITHUB
 
+// base URL for HTTP requests to the Canvas LMS API
 var url = `https://templeu.instructure.com/api/v1/`;
+// URL parameters for a courses request.
+// Filters HTTP request results to provide only actively enrolled courses.
 var courseURL = 'courses?enrollment_state=active&enrollment_type=student';
 
+/**
+ * For the addition of header options including access token to HTTP request
+ */
 const headerOptions = {
   headers: { 
     Authorization: 'Bearer ' + access_token
@@ -31,6 +52,9 @@ const red = "\x1b[31m";
 const white = "\x1b[37m";
 const reset = "\x1b[0m";
 
+/**
+ * Wrapper function for the printing of data
+ */
 const log = function (){
   if(arguments.length == 1){
     console.log(arguments[0]);
@@ -39,6 +63,12 @@ const log = function (){
   }
 }
 
+/**
+ * Makes an HTTP GET request to Canvas LMS API.
+ * Creates Course objects by parsing received JSON response.
+ * Passes array of Course objects to callback function.
+ * @param {function} callback 
+ */
 const getCourses = function (callback) {
   return axios.get(url + courseURL, headerOptions)
   .then(response => {
@@ -53,7 +83,7 @@ const getCourses = function (callback) {
 }
 
 const mapCourses = function (courses, by) {
-  courses = courses.filter((course) => !ignoreCourses.includes(course.name)); // only get courses we want
+  courses = courses.filter((course) => !ignoreCourses.includes(course.name));
   if(by == 'id'){
     return courses.map(course => course.id);
   }else if(by == 'name'){

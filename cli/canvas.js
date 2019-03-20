@@ -9,6 +9,11 @@ const ascii_art =
 const h2p = require('html2plaintext');
 const moment = require('moment');
 
+/**
+ * Represents a single course retrieved by a GET call to the Canvas API
+ * @constructor
+ * @param {Course} obj 
+ */
 function Course(obj) {
     this.id = obj.id;
     // format course name
@@ -21,6 +26,11 @@ function Course(obj) {
     this.name = name;
 }
 
+/**
+ * Represents a single assignment retrieved by a GET call to the Canvas API
+ * @constructor
+ * @param {Asignment} obj 
+ */
 function Assignment(obj) {
     this.id = obj.id;
     this.name = obj.name;
@@ -29,6 +39,9 @@ function Assignment(obj) {
     this.points_possible = obj.points_possible;
 }
 
+/**
+ * Export module with newly created Course and Assignment objects
+ */
 module.exports = {
     Course,
     Assignment,
