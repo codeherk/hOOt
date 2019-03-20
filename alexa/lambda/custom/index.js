@@ -27,12 +27,12 @@ const LaunchRequestHandler = {
     return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
   },
   handle(handlerInput) {
-    const speechText = 'Welcome to hOOt for Canvas, how may I help you?';
+    const speechText = 'Welcome to Hoot for Canvas, how may I help you?';
 
     return handlerInput.responseBuilder
       .speak(speechText)
       .reprompt(speechText)
-      .withSimpleCard('hOOt for Canvas', speechText)
+      .withSimpleCard('Hoot for Canvas', speechText)
       .getResponse();
   },
 };
