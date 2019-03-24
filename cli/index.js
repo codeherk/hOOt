@@ -65,7 +65,7 @@ const log = function (){
 
 /**
  * Makes an HTTP GET request to Canvas LMS API.
- * Creates Course objects by parsing received JSON response.M // only get courses we wantE
+ * Creates Course objects by parsing received JSON response.
  * Passes array of Course objects to callback function.
  * @param {function} callback 
  */

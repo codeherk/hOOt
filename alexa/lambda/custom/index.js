@@ -1,7 +1,6 @@
 /* eslint-disable  func-names */
 /* eslint-disable  no-console */
 
-
 /**
  * This file is part of the hooT VUI system.
  * It contains the intent functions and their related handlers
@@ -14,9 +13,6 @@
  * @author Terrell Nowlin
  * @author Brendan Connelly
  */
-
-
-
 
 const Alexa = require('ask-sdk-core');
 const axios = require('axios');
@@ -45,7 +41,9 @@ var smallImgUrl = 'https://assets.pcmag.com/media/images/423653-instructure-canv
 var largeImgUrl = 'https://am02bpbsu4-flywheel.netdna-ssl.com/wp-content/uploads/2013/01/canvas_stack.jpg';
 
 /**
- * 
+ * Handler for skill's Launch Request Intent.
+ * Invokes canHandle() to ensure request is a LaunchRequest.
+ * Invokes handle() to vocalize greeting to user.
  */
 const LaunchRequestHandler = {
   canHandle(handlerInput) {
@@ -62,6 +60,9 @@ const LaunchRequestHandler = {
   },
 };
 
+/**
+ * @todo determine if this handler is needed. If not, remove during refactor.
+ */
 const HelloWorldIntentHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === 'IntentRequest' &&
@@ -77,6 +78,13 @@ const HelloWorldIntentHandler = {
   },
 };
 
+/**
+ * Handler for skill's getCourses Intent.
+ * Invokes canHandle() to ensure request is an IntentRequest
+ * matching the declared CoursesIntent Intent.
+ * Invokes handle() to receive course list from getCourses() function
+ * and vocalize the Canvas user's course list.
+ */
 const CoursesIntentHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === 'IntentRequest' &&
@@ -100,6 +108,12 @@ const CoursesIntentHandler = {
   }
 };
 
+/**
+ * Makes an HTTP GET request to Canvas LMS API.
+ * Creates Course objects by parsing received JSON response.
+ * Passes array of Course objects to callback function.
+ * @param {function} callback 
+ */
 const getCourses = function (callback) {
   return axios.get(url + courseURL, headerOptions)
     .then(response => {
@@ -113,8 +127,14 @@ const getCourses = function (callback) {
     });
 }
 
+/**
+ * Remove ignored courses from course list.
+ * Return list of either course names or course ids depending on 'by' param.
+ * @param {Course []} courses 
+ * @param {String} by 
+ */
 const mapCourses = function (courses, by) {
-  courses = courses.filter((course) => !ignoreCourses.includes(course.name)); // only get courses we want
+  courses = courses.filter((course) => !ignoreCourses.includes(course.name)); 
   if (by == 'id') {
     return courses.map(course => course.id);
   } else if (by == 'name') {
@@ -123,6 +143,12 @@ const mapCourses = function (courses, by) {
   return list;
 }
 
+/**
+ * Get list of course names from 'courses' param.
+ * Format course list into easily vocalized String.
+ * @param {Course []} courses 
+ * @returns {String} list of formatted course names.
+ */
 const coursesToString = function (courses) {
   var titles = mapCourses(courses, "name");
   var list = ''; // set list as empty string
