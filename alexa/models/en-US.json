@@ -35,17 +35,21 @@
           "name": "AssignmentIntent",
           "slots": [
             {
-              "name": "Position",
+              "name": "position",
               "type": "AMAZON.Ordinal",
               "samples": [
-                "{Position}",
-                "index {Position}"
+                "{position}",
+                "index {position}"
               ]
             }
           ],
           "samples": [
             "assignments",
-            "what assignments do I have coming up"
+            "what assignments do I have",
+            "what assignments do I have coming up",
+            "what homework do I have",
+            "what do I need to do",
+            "what do I need to do for my {position} class"
           ]
         }
       ],
@@ -59,12 +63,12 @@
           "prompts": {},
           "slots": [
             {
-              "name": "Position",
+              "name": "position",
               "type": "AMAZON.Ordinal",
               "confirmationRequired": false,
               "elicitationRequired": true,
               "prompts": {
-                "elicitation": "Elicit.Intent-AssignmentIntent.IntentSlot-Position"
+                "elicitation": "Elicit.Intent-AssignmentIntent.IntentSlot-position"
               }
             }
           ]
@@ -73,7 +77,7 @@
     }, 
     "prompts": [
       {
-        "id": "Elicit.Intent-AssignmentIntent.IntentSlot-Position",
+        "id": "Elicit.Intent-AssignmentIntent.IntentSlot-position",
         "variations": [
           {
             "type": "PlainText",

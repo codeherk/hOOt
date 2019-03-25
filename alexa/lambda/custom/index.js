@@ -3,11 +3,9 @@
 
 const Alexa = require('ask-sdk-core');
 const axios = require('axios');
-const {
-  Course
-} = require('./canvas');
-
-//var access_token = "ACCESS TOKEN GOES HERE" // NEVER, EVER PUSH YOUR ACCESS TOKEN UP TO GITHUB
+const { Course, Assignment } = require('./canvas');
+const { access_token } = require('./config'); // create config.js in your code
+var classes = [];
 
 var url = `https://templeu.instructure.com/api/v1/`;
 var courseURL = 'courses?enrollment_state=active&enrollment_type=student';
@@ -58,16 +56,14 @@ const CoursesIntentHandler = {
       handlerInput.requestEnvelope.request.intent.name === 'CoursesIntent';
   },
   handle(handlerInput) {
-    //const speechText = 'Hello World!';
-    // return handlerInput.responseBuilder
-    //   .speak(speechText)
     return new Promise(resolve => {
       getCourses(courses => {
-        //var list = formatCourses(courses);
+        var question = ' Anything else I can help you with?';
         var speechText = 'You are currently enrolled in: ' + coursesToString(courses);
         resolve(handlerInput.responseBuilder
-          .speak(speechText)
+          .speak(speechText + question)
           .withStandardCard("Enrolled Courses", speechText, smallImgUrl, largeImgUrl)
+          .withShouldEndSession(false)
           .getResponse()
         );
       });
@@ -111,31 +107,120 @@ const coursesToString = function (courses) {
   return list;
 }
 
+const getUpcomingAssignments = function(courseID,callback){
+  var request = url + 'courses/' + courseID + '/assignments?bucket=upcoming';
+  return axios.get(request, headerOptions)
+    .then(response => {
+      var data = response.data;
+      var assignments = [];
+      for (let i = 0; i < data.length; i++){
+        assignments.push(new Assignment(data[i]));
+      }
+      //log(data[0]);
+      //log(response); // debug
+      //log(assignments);
+      callback(assignments);
+    });
+}
+const formatAssignments = function (tasks){
+  var list = [];
+  var detail;
+
+  for (let i = 0; i < tasks.length; i++){
+    detail = `You have ${tasks[i].name} `;
+    if(tasks[i].due){
+      detail += `that is due ${tasks[i].due}.`
+    }else{
+      detail += 'without a due date. Contact your professor for more info'
+    }
+    list.push(detail);
+  }
+  return list;
+}
+
 const AssignmentIntentHandler = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request;
 
     return request.type === 'IntentRequest' &&
-      request.intent.name === 'AssignmentIntent'
+      request.intent.name === 'AssignmentIntent' &&
+      request.dialogState === 'STARTED';
   },
   handle(handlerInput) {
-    // const request = handlerInput.requestEnvelope.request;
-    //const position = intent.slots.position.value;
-    const speechOutput = 'Hello man'
-    const reprompt = 'I said hello man';
-    
+    console.log("HELLO");
     const intent = handlerInput.requestEnvelope.request.intent;
-    if (intent.dialogState != "COMPLETED"){
-       return handlerInput.responseBuilder
-              .addDelegateDirective(intent)
-              .getResponse();
-    } else {
-        // Once dialoState is completed, do your thing.
-        return handlerInput.responseBuilder
-              .speak(speechOutput)
-              .reprompt(reprompt)
-              .getResponse();
-    }
+    return new Promise(resolve => {
+      getCourses(courses => {
+        classes = courses;
+        resolve(handlerInput.responseBuilder
+          .addDelegateDirective(intent)
+          .getResponse()
+        );
+      });
+    }).catch(error => {
+      resolve(handlerInput.responseBuilder
+        .speak('I am having a little trouble getting your current courses. Try again later.')
+        .getResponse()
+      );
+    });
+    // const intent = handlerInput.requestEnvelope.request.intent;
+    //    return handlerInput.responseBuilder
+    //           .addDelegateDirective(intent)
+    //           .getResponse();
+  },
+};
+
+const GetAssignmentIntentHandler = {
+  canHandle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request;
+
+    return request.type === 'IntentRequest' &&
+      request.intent.name === 'AssignmentIntent' &&
+      request.dialogState === 'IN_PROGRESS';
+  },
+  handle(handlerInput) {
+    const currentIntent = handlerInput.requestEnvelope.request.intent;       
+    var position = currentIntent.slots.position.value;
+
+    var index = position - 1;
+    return new Promise(resolve => {
+      var courseIDs = mapCourses(classes,'id');
+      classes = mapCourses(classes,'name');
+      getUpcomingAssignments(courseIDs[index], tasks => {
+        var list = formatAssignments(tasks);
+        var output = (list === undefined || list.length == 0) ? 'there are no upcoming assignments' : list[0];
+        output = `For ${classes[index]}, ${output}`;
+        // var output;
+        // if(tasks.length == 0){
+        //   output = 'March 25th, 2019, 11:59pm';
+        // }else{
+        //   output = tasks[0].name;
+        // }
+        resolve(handlerInput.responseBuilder
+            .speak(output)
+            .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
+            .getResponse()
+        )
+      }).catch(error => {
+        resolve(handlerInput.responseBuilder
+          .speak(`I had trouble getting your assignments. Try again later.`)
+          .getResponse()
+        );
+      });
+        
+        // var speechText = 'You are currently enrolled in: ' + coursesToString(courses);
+        // resolve(handlerInput.responseBuilder
+        //   .speak(speechText)
+        //   .withStandardCard("Enrolled Courses", speechText, smallImgUrl, largeImgUrl)
+        //   .getResponse()
+        // );
+      // }).catch(error => {
+      //   resolve(handlerInput.responseBuilder
+      //     .speak('Could not get courses.')
+      //     .getResponse()
+      //   );
+      // });
+    });
   },
 };
 
@@ -204,6 +289,7 @@ exports.handler = skillBuilder
     HelloWorldIntentHandler,
     CoursesIntentHandler,
     AssignmentIntentHandler,
+    GetAssignmentIntentHandler,
     HelpIntentHandler,
     CancelAndStopIntentHandler,
     SessionEndedRequestHandler

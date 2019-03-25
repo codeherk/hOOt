@@ -11,6 +11,11 @@
   "dependencies": {
     "ask-sdk-core": "^2.0.0",
     "ask-sdk-model": "^1.0.0",
-    "axios": "^0.18.0"
+    "axios": "^0.18.0",
+    "html2plaintext": "^2.1.2",
+    "moment": "^2.24.0"
+  },
+  "devDependencies": {
+    "alexa-skill-test-framework": "^1.2.4"
   }
 }
