@@ -1,19 +1,19 @@
-//   ██████╗ █████╗ ███╗   ██╗██╗   ██╗ █████╗ ███████╗     █████╗ ██████╗ ██╗
-//  ██╔════╝██╔══██╗████╗  ██║██║   ██║██╔══██╗██╔════╝    ██╔══██╗██╔══██╗██║
-//  ██║     ███████║██╔██╗ ██║██║   ██║███████║███████╗    ███████║██████╔╝██║
-//  ██║     ██╔══██║██║╚██╗██║╚██╗ ██╔╝██╔══██║╚════██║    ██╔══██║██╔═══╝ ██║
-//  ╚██████╗██║  ██║██║ ╚████║ ╚████╔╝ ██║  ██║███████║    ██║  ██║██║     ██║
-//   ╚═════╝╚═╝  ╚═╝╚═╝  ╚═══╝  ╚═══╝  ╚═╝  ╚═╝╚══════╝    ╚═╝  ╚═╝╚═╝     ╚═╝
+//   ██████╗ █████╗ ███╗   ██╗██╗   ██╗ █████╗ ███████╗     ██████╗██╗     ██╗
+//  ██╔════╝██╔══██╗████╗  ██║██║   ██║██╔══██╗██╔════╝    ██╔════╝██║     ██║
+//  ██║     ███████║██╔██╗ ██║██║   ██║███████║███████╗    ██║     ██║     ██║
+//  ██║     ██╔══██║██║╚██╗██║╚██╗ ██╔╝██╔══██║╚════██║    ██║     ██║     ██║
+//  ╚██████╗██║  ██║██║ ╚████║ ╚████╔╝ ██║  ██║███████║    ╚██████╗███████╗██║
+//   ╚═════╝╚═╝  ╚═╝╚═╝  ╚═══╝  ╚═══╝  ╚═╝  ╚═╝╚══════╝     ╚═════╝╚══════╝╚═╝
+ 
                                                                             
 // install packages
 const axios = require('axios');
 const { Course, Assignment, ascii_art } = require('./canvas');
-
-
-//var access_token = "ACCESS TOKEN GOES HERE" // NEVER, EVER PUSH YOUR ACCESS TOKEN UP TO GITHUB
+const { access_token } = require('./config');
 
 var url = `https://templeu.instructure.com/api/v1/`;
 var courseURL = 'courses?enrollment_state=active&enrollment_type=student';
+var TA_URL = 'courses?enrollment_state=active&enrollment_type=ta';
 
 const headerOptions = {
   headers: { 
@@ -37,6 +37,19 @@ const log = function (){
   }else if(arguments.length == 2){
     console.log(arguments[1] + arguments[0] + reset);
   }
+}
+
+const getTACourses = function (callback) {
+  return axios.get(url + TA_URL, headerOptions)
+  .then(response => {
+    //log(response.data) //debug
+    var courses = [];
+    for(let i = 0; i < response.data.length; i++){
+      courses.push(new Course(response.data[i]));
+    }
+    //log(courses) //debug
+    callback(courses);
+  });
 }
 
 const getCourses = function (callback) {
@@ -64,8 +77,13 @@ const mapCourses = function (courses, by) {
 
 const coursesToString = function(courses){
   var titles = mapCourses(courses,"name");
+
+  if(titles.length == 1){
+    return [titles[0]];
+  }
+
   var list = ''; // set list as empty string
-  var i;  
+  var i; 
   // loop thru courses, and format it to string that will be spoken
   for (i = 0; i < titles.length - 1; i++){
     list += titles[i] + ', ';
@@ -99,6 +117,7 @@ const getUpcomingAssignments = function(courseID,callback){
     .then(response => {
       var data = response.data;
       var assignments = [];
+      //log(response.status);
       for (let i = 0; i < data.length; i++){
         assignments.push(new Assignment(data[i]));
       }
@@ -122,6 +141,27 @@ const formatAssignments = function (tasks){
   }
   return list;
 }
+
+const getContentExports = function (courseID,callback) {
+  var result = url + 'courses/' + courseID + '/content_exports';
+  return axios.get(result, headerOptions)
+    .then(res => {
+      log(res.data);
+      callback(res.data);
+    });
+  }
+
+  const getUsers = function (courseID,callback) {
+    var result = url + 'courses/' + courseID + '/users' + '?enrollment_type[]=student';
+
+    return axios.get(result, headerOptions)
+    .then(response => {
+      //log(response) //debug
+      log(response.headers)
+      //callback(response);
+    });
+  }
+
 /*******************************************************************************/
 /************************* END OF FUNCTION DECLARATIONS ************************/
 /*******************************************************************************/
@@ -130,14 +170,15 @@ const formatAssignments = function (tasks){
 log(ascii_art, cyan);
  
 getCourses(courses => {
-  //var courseIDs = formatCourses(courses,'id');
-  var speechText = 'You are currently enrolled in: ' + coursesToString(courses);
+  log(courses)
+  var speechText = '\n\nYou are currently enrolled in: ' + coursesToString(courses);
   log(speechText);
-  //log(mapCourses(courses,'name')[0]);
+
   var courseIDs = mapCourses(courses,'id');
-  log(courseIDs);
-  // get assignments for first course
-  getUpcomingAssignments(courseIDs[1], tasks => {
+  //log(courseIDs);
+
+  getUpcomingAssignments(courseIDs[0], tasks => {
+    //log(tasks[0].name)
     //log(tasks[0].description);
     log(formatAssignments(tasks))
   }).catch(error => {
@@ -146,3 +187,28 @@ getCourses(courses => {
 }).catch(error => {
   log("Could not get courses. " + error, red);
 });
+
+// getTACourses(courses => {
+//   //var courseIDs = formatCourses(courses,'id');
+//   var courseIDs = mapCourses(courses,'id');
+//   var speechText = 'You are currently teaching: ' + coursesToString(courses);
+//   log(speechText);
+  
+//   // getContentExports(courseIDs[0], res => {
+//   //   log(res);
+//   getUsers(courseIDs[0], res => {
+//     //log(res);
+//   })
+
+//   // get all assignments and tell total
+
+//   // getAssignments(courseIDs[0], tasks => {
+//   //   //log(tasks[0].name)
+//   //   //log(tasks[0].description);
+//   //   log(formatAssignments(tasks))
+//   // }).catch(error => {
+//   //   log("Could not get assignments. " + error, red);
+//   // });
+// }).catch(error => {
+//   log("Could not get courses. " + error, red);
+// });
