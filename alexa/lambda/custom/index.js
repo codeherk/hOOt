@@ -162,6 +162,12 @@ const coursesToString = function (courses) {
   return list;
 }
 
+/**
+ * Handler for skills getAssignments Intent.
+ * Invokes canHandle() to ensure request is an IntentRequest,
+ * matching the declared Assignment Intent.
+ * Invokes handle() to receive 
+ */
 const AssignmentIntentHandler = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request;
@@ -190,6 +196,13 @@ const AssignmentIntentHandler = {
   },
 };
 
+/**
+ * Handler for skill's Help Intent.
+ * Invokes canHandle() to ensure request is an IntentRequest
+ * matching the declared HelpIntent.
+ * Invokes handle() to to handle help request
+ * and give user instructions on how to use the skill.
+ */
 const HelpIntentHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === 'IntentRequest' &&
@@ -206,6 +219,13 @@ const HelpIntentHandler = {
   },
 };
 
+/**
+ * Handler for skill's Cancel and Stop Intents.
+ * Invokes canHandle() to ensure request is an IntentRequest
+ * matching the declared CancelIntent and StopIntent.
+ * Invokes handle() to allow the user to stop an action, but remain in the skill
+ * or completely exit the skill.
+ */
 const CancelAndStopIntentHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === 'IntentRequest' &&
@@ -222,6 +242,13 @@ const CancelAndStopIntentHandler = {
   },
 };
 
+/**
+ * Handler for skill's SessionEndedRequest Intent.
+ * Invokes canHandle() to ensure request is an IntentRequest
+ * matching the declared SessionEndedRequestIntent.
+ * Invokes handle() to handle errors, user exits, and utterances not matching
+ * a defined intent.
+ */
 const SessionEndedRequestHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === 'SessionEndedRequest';
@@ -233,6 +260,10 @@ const SessionEndedRequestHandler = {
   },
 };
 
+/**
+ * Handler for system errors.
+ * Envokes handler() to inform user that their utterance was misunderstood
+ */
 const ErrorHandler = {
   canHandle() {
     return true;
