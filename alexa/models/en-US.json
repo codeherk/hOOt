@@ -32,6 +32,17 @@
           ]
         },
         {
+          "name": "CourseScoresIntent",
+          "samples":[
+            "course scores",
+            "what are my current course scores",
+            "list my current course scores",
+            "list my current scores",
+            "list my course scores",
+            "what are my course scores"
+          ]
+        },
+        {
           "name": "AssignmentIntent",
           "slots": [
             {

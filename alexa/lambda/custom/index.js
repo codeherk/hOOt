@@ -99,6 +99,35 @@ const CoursesIntentHandler = {
           .speak(speechText + question)
           .withStandardCard("Enrolled Courses", speechText, smallImgUrl, largeImgUrl)
           .withShouldEndSession(false)
+          .getResponse()          
+        );
+      });
+    });
+  }
+};
+
+/**
+ * Handler for skill's getCourseScores Intent.
+ * Invokes canHandle() to ensure request is an IntentRequest
+ * matching the declared CourseScoresIntent Intent.
+ * Invokes handle() to receive course list from getCourses() function,
+ * extract course scores and names from course list,
+ * and vocalize a string of the Canvas user's current course scores for each course.
+ */
+const CourseScoresIntentHandler = {
+  canHandle(handlerInput) {
+    return handlerInput.requestEnvelope.request.type === 'IntentRequest' &&
+      handlerInput.requestEnvelope.request.intent.name === 'CourseScoresIntent';
+  },
+  handle(handlerInput) {
+    return new Promise(resolve => {
+      getCourses(courses => {
+        var question = ' Anything else I can help you with?';
+        var speechText = 'Your current grades are as follows: ' + courseScoresToString(courses);
+        resolve(handlerInput.responseBuilder
+          .speak(speechText + question)
+          .withStandardCard("Enrolled Courses", speechText, smallImgUrl, largeImgUrl)
+          .withShouldEndSession(false)
           .getResponse()
         );
       });
@@ -145,7 +174,7 @@ const mapCourses = function (courses, by) {
  * Get list of course names from 'courses' param.
  * Format course list into easily vocalized String.
  * @param {Course []} courses 
- * @returns {String} list of formatted course names.
+ * @returns {String} list of formatted, vocalizable course names.
  */
 const coursesToString = function (courses) {
   var titles = mapCourses(courses, "name");
@@ -157,6 +186,33 @@ const coursesToString = function (courses) {
   }
 
   list += 'and ' + titles[i] + '.'; // and <last course name>. 
+  return list;
+}
+
+/**
+ * Builds a formatted, vocalizable string of course names and scores.
+ * @param {Course []} courses 
+ * @returns {String} formatted, vocalizable string of course names and scores.
+ */
+const courseScoresToString = function(courses) {
+  var list = "";
+
+  for (var key in courses) {
+    if (courses.hasOwnProperty(key)) {
+      var currScore = courses[key].enrollments.computed_current_score;
+      var courseName = courses[key].name;
+      
+      if (!ignoreCourses.includes(courseName)) {
+        if (currScore != undefined && currScore != null) {
+          list += "In";
+          list += courseName;
+          list += " you current score is ";
+          list += currScore;
+          list += ". ";
+        }
+      }
+    }
+  }
   return list;
 }
 
