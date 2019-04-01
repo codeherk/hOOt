@@ -31,6 +31,9 @@ function Course(obj) {
     name = name.replace("&","and"); // Alexa cannot speak &
     name = name.trim();
     this.name = name;
+    if(obj.enrollments != null) {
+        this.enrollments = obj.enrollments[0];
+    }
 }
 
 /**

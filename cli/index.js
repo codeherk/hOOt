@@ -24,6 +24,7 @@
 // install packages
 const axios = require('axios');
 const { Course, Assignment, ascii_art } = require('./canvas');
+const { access_token } = require('./config');
 
 //var access_token = "ACCESS TOKEN GOES HERE" // NEVER, EVER PUSH YOUR ACCESS TOKEN UP TO GITHUB
 
@@ -31,7 +32,7 @@ const { Course, Assignment, ascii_art } = require('./canvas');
 var url = `https://templeu.instructure.com/api/v1/`;
 // URL parameters for a courses request.
 // Filters HTTP request results to provide only actively enrolled courses.
-var courseURL = 'courses?enrollment_state=active&enrollment_type=student';
+var courseURL = 'courses?enrollment_state=active&enrollment_type=student&include[]=total_scores';
 var TA_URL = 'courses?enrollment_state=active&enrollment_type=ta';
 
 /**
@@ -195,6 +196,31 @@ const formatAssignments = function (tasks){
   return list;
 }
 
+/**
+ * Extract course names, scores, and letter grades from courses.
+ * Print formatted list of course names, scores, and letter grades.
+ * @param {Course []} courses 
+ */
+const getCourseScores = function(courses) {
+  for (var key in courses) {
+    if (courses.hasOwnProperty(key)) {
+      var currLetterGrade = courses[key].enrollments.computed_current_grade;
+      var currScore = courses[key].enrollments.computed_current_score;
+      var courseName = courses[key].name;
+      
+      if (!ignoreCourses.includes(courseName)) {
+        if (currScore == undefined || currScore == null) {
+          log(courseName + " has no current score.");
+        } else if (currLetterGrade == undefined || currLetterGrade == null) {
+          log(courseName + ": " + currScore);
+        } else {
+          log(courseName + ": " + currScore + "(" + currLetterGrade + ")");
+        }
+      }
+    }
+  }
+}
+
 const getContentExports = function (courseID,callback) {
   var result = url + 'courses/' + courseID + '/content_exports';
   return axios.get(result, headerOptions)
@@ -223,7 +249,10 @@ const getContentExports = function (courseID,callback) {
 log(ascii_art, cyan);
  
 getCourses(courses => {
-  log(courses)
+  //log(courses);
+
+  getCourseScores(courses);
+
   var speechText = '\n\nYou are currently enrolled in: ' + coursesToString(courses);
   log(speechText);
 

@@ -24,18 +24,18 @@ function Course(obj) {
     name = name.replace("&","and");
     name = name.trim();
     this.name = name;
+    if(obj.enrollments != null) {
+        this.enrollments = obj.enrollments[0];
+        console.log(this.enrollments);
+    }
 }
 
-<<<<<<< HEAD
 /**
  * Represents a single assignment retrieved by a GET call to the Canvas API
  * @constructor
  * @param {Asignment} obj 
  */
 function Assignment(obj) {
-=======
-function Assignment(obj){
->>>>>>> 0755c966f05e53c74e01c4be401a95d37d9476ba
     this.id = obj.id;
     this.name = obj.name;
     this.description = obj.description ? h2p(obj.description).replace(/\r?\n|\r/g, " ") : null;
