@@ -16,13 +16,19 @@
 
 const Alexa = require('ask-sdk-core');
 const axios = require('axios');
-const {
-  Course
-} = require('./canvas');
-//var access_token = "ACCESS TOKEN GOES HERE" // NEVER, EVER PUSH YOUR ACCESS TOKEN UP TO GITHUB
+const { Course, Assignment } = require('./canvas');
+//Helper Function for calling the Cognito /oauth2/userInfo to get user info using the accesstoken
+const https = require('https');
+//const { access_token } = require('./config'); // create config.js in your code
+
+//var access_token = '';
+var alexa_access_token = '';
+
+var classes = [];
 
 // base URL for HTTP requests to the Canvas LMS API
 var url = `https://templeu.instructure.com/api/v1/`;
+
 // URL parameters for a courses request.
 // Filters HTTP request results to provide only actively enrolled courses.
 var courseURL = 'courses?enrollment_state=active&enrollment_type=student';
@@ -30,16 +36,20 @@ var courseURL = 'courses?enrollment_state=active&enrollment_type=student';
 /**
  * For the addition of header options including access token to HTTP request
  */
-const headerOptions = {
-  headers: {
-    Authorization: 'Bearer ' + access_token
-  }
-};
+var headerOptions = null;
 
 var ignoreCourses = ['CIS Student Community Fall 2018', 'TU Alliance for Minority Participation (AMP) Program', 'Computer Science, Math, and Physics (CMP) Students'];
 var smallImgUrl = 'https://assets.pcmag.com/media/images/423653-instructure-canvas-lms-logo.jpg?width=333&height=245';
 var largeImgUrl = 'https://am02bpbsu4-flywheel.netdna-ssl.com/wp-content/uploads/2013/01/canvas_stack.jpg';
 
+//set canvas headers
+const setHeaderOptions = function(token){
+  headerOptions = {
+    headers: {
+      Authorization: 'Bearer ' + token
+    }
+  }
+}
 /**
  * Handler for skill's Launch Request Intent.
  * Invokes canHandle() to ensure request is a LaunchRequest.
@@ -50,15 +60,82 @@ const LaunchRequestHandler = {
     return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
   },
   handle(handlerInput) {
-    const speechText = 'Welcome to hOOt for Canvas, how may I help you?';
+    if (handlerInput.requestEnvelope.context.System.user.accessToken === undefined) {
+      return handlerInput.responseBuilder
+        .speak("to start using this skill, please use the companion app to authenticate")
+        .reprompt("to start using this skill, please use the companion app to authenticate")
+        .withLinkAccountCard()
+        .getResponse();
+    } else {
 
-    return handlerInput.responseBuilder
-      .speak(speechText)
-      .reprompt(speechText)
-      .withSimpleCard('hOOt for Canvas', speechText)
-      .getResponse();
-  },
+      return new Promise(resolve => {
+        const speechText = 'Welcome to hOOt for Canvas, how may I help you?';
+        // user is signed in, get access token from amazon
+        alexa_access_token = handlerInput.requestEnvelope.context.System.user.accessToken;
+        
+        // try to get info about user. 
+        try {
+          var tokenOptions = buildHttpGetOptions(alexa_access_token);
+          console.log(`aat: ${alexa_access_token}`); // access token granted from amazon cognito
+
+          // make a call to get user attributes
+          httpGet(tokenOptions, response => {
+            console.log(response.data);
+            console.log(response.data.zoneinfo);
+            
+            const sessionAttributes = handlerInput.attributesManager.getSessionAttributes(); // get session attributes
+            sessionAttributes.access_token = response.data.zoneinfo; // store access token in session
+            setHeaderOptions(response.data.zoneinfo);
+            handlerInput.attributesManager.setSessionAttributes(sessionAttributes); // save session attributes
+            
+            resolve(handlerInput.responseBuilder
+              .speak(speechText)
+              .reprompt(speechText)
+              .withSimpleCard('hOOt for Canvas', speechText)
+              .getResponse());
+
+          }).catch(error => {
+            console.log(`ERROR: ${error}`);
+            resolve(speakError(handlerInput,"I had trouble getting access to canvas.",error));
+          });
+          
+        }catch(error) {
+          console.log(`Error message: ${error.message}`);
+          resolve(speakError(handlerInput,"I had trouble getting access to canvas. Try again later.",error));
+        }
+      });
+      }
+    },
 };
+
+
+// upon an error, we should said there is an error and end session
+function speakError(handlerInput, speechText , error){
+  console.log(`${speechText}. ERROR: ${error}`);
+  return handlerInput.responseBuilder
+          .speak(speechText)
+          .getResponse();
+}
+
+// https is a default part of Node.JS.  Read the developer doc:  https://nodejs.org/api/https.html
+function buildHttpGetOptions(accessToken) {
+    return {
+        //Replace the host with your cognito user pool domain 
+        method: 'GET',
+        baseURL: 'https://alexa-hoot.auth.us-east-1.amazoncognito.com',
+        url: '/oauth2/userInfo',
+        port: 443,
+        headers: {
+            'authorization': 'Bearer ' + accessToken
+        }
+    };
+}
+
+ function httpGet(options, callback) {
+    return axios(options).then(res => {
+      callback(res);
+    });
+  }
 
 /**
  * @todo determine if this handler is needed. If not, remove during refactor.
@@ -101,6 +178,8 @@ const CoursesIntentHandler = {
           .withShouldEndSession(false)
           .getResponse()          
         );
+      }).catch(error => {
+        resolve(speakError(handlerInput,'I am having a little trouble getting your current courses. Try again later.', error));
       });
     });
   }
@@ -231,7 +310,6 @@ const AssignmentIntentHandler = {
       request.dialogState === 'STARTED';
   },
   handle(handlerInput) {
-    console.log("HELLO");
     const intent = handlerInput.requestEnvelope.request.intent;
     return new Promise(resolve => {
       getCourses(courses => {
@@ -396,6 +474,7 @@ exports.handler = skillBuilder
   .addRequestHandlers(
     LaunchRequestHandler,
     HelloWorldIntentHandler,
+    CourseScoresIntentHandler,
     CoursesIntentHandler,
     AssignmentIntentHandler,
     GetAssignmentIntentHandler,

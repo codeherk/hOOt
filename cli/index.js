@@ -244,17 +244,13 @@ const getContentExports = function (courseID,callback) {
 /*******************************************************************************/
 /************************* END OF FUNCTION DECLARATIONS ************************/
 /*******************************************************************************/
-
-
 log(ascii_art, cyan);
  
 getCourses(courses => {
   //log(courses);
-
-  getCourseScores(courses);
-
   var speechText = '\n\nYou are currently enrolled in: ' + coursesToString(courses);
   log(speechText);
+  getCourseScores(courses);
 
   var courseIDs = mapCourses(courses,'id');
   //log(courseIDs);

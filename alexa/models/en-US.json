@@ -46,7 +46,7 @@
           "name": "AssignmentIntent",
           "slots": [
             {
-              "name": "Position",
+              "name": "position",
               "type": "AMAZON.Ordinal",
               "samples": [
                 "{position}",

@@ -18,15 +18,19 @@ function Course(obj) {
     }
 
     name = name.split('sec')[0];
+    
     if (name.includes('-')) {
         name = name.split('-')[1];
     }
+
     name = name.replace("&","and");
     name = name.trim();
+    
     this.name = name;
+
     if(obj.enrollments != null) {
         this.enrollments = obj.enrollments[0];
-        console.log(this.enrollments);
+        //console.log(this.enrollments);
     }
 }
 
