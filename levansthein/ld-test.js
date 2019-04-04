@@ -1,11 +1,14 @@
 const levenshtein = require('js-levenshtein');
 
+//hoot
+
 /*
  * Status codes indicating success and other status 
  */
 
 var SUCCESS = 100;      //indicates cadidate was found successfully
-var NULL_ARRAY = 401;   //indicates array was null
+var NO_MATCH = 401      //indicates no phrase is not contained in any course
+var NULL_ARRAY = 402;   //indicates array was null
 var FAILURE = 404;      //indicates something went wrong initially
 
 
