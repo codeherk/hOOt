@@ -37,7 +37,7 @@ function Course(obj) {
 /**
  * Represents a single assignment retrieved by a GET call to the Canvas API
  * @constructor
- * @param {Asignment} obj 
+ * @param {Assignment} obj 
  */
 function Assignment(obj) {
     this.id = obj.id;
@@ -47,10 +47,15 @@ function Assignment(obj) {
     this.points_possible = obj.points_possible;
 }
 
-/**
- * Export module with newly created Course and Assignment objects
- */
+function Announcement(obj) {
+    this.id = obj.id;
+    this.title = obj.title;
+    this.message = obj.message;
+    this.context_code = obj.context_code;
+}
+
 module.exports = {
     Course,
-    Assignment
+    Assignment,
+    Announcement
 }

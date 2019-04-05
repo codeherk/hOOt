@@ -150,6 +150,56 @@ const getAssignments = function (courseID,callback) {
     });
 }
 
+
+
+//*****************************************
+const getAnnouncements = function (courseIDS,callback) {
+  var temp=announcement_URL;
+  for(var i=0;i<courseIDS.length;i++){
+    if (i==(courseIDS.length-1)){
+    temp=temp+'context_codes[]=course_'+courseIDS[i];
+
+    }else{
+
+      temp=temp+'context_codes[]=course_'+courseIDS[i]+'&';
+    }
+  }
+  return axios.get(url + temp, headerOptions)
+  .then(response => {
+    //log(response) //debug
+    var announcements = [];
+    for(let i = 0; i < response.data.length; i++){
+      announcements.push(new Announcement(response.data[i]));
+    }
+
+    for(let i = 0; i < announcements.length; i++){
+      var msg=announcements[i].message;
+      var new_msg="";
+      var b=1
+      for(let j=0; j<msg.length;j++){
+        if(msg[j]=='<'){
+          b=1;
+          continue;
+        }
+        if(msg[j]=='>'){
+          b=0;
+          continue;
+        }
+        if(b==0){
+          new_msg=new_msg+msg[j];
+        }
+
+      }
+      announcements[i].message=new_msg;
+    }
+    callback(announcements);
+  });
+}
+
+//***************************************** 
+
+
+
 /**
  * Makes an HTTP GET request to Canvas LMS API, specifying API returns upcoming assignments only.
  * Receives a response from API with all of a user's upcoming assignments for a course with the given course ID.
@@ -273,6 +323,27 @@ getCourses(courses => {
 }).catch(error => {
   log("Could not get courses. " + error, red);
 });
+
+
+//get annoucements
+getCourses(
+  courses => {
+
+  var courseIDs = mapCourses(courses,'id');
+  //log(courseIDs);
+
+  getAnnouncements(courseIDs, announcements => {
+    for( let i=0;i<announcements.length;i++){
+      log((announcements[i].message));
+
+    }
+  }).catch(error => {
+    log("Could not get announcements. " + error, red);
+  });
+}).catch(error => {
+  log("Could not get courses. " + error, red);
+});
+
 
 // getTACourses(courses => {
 //   //var courseIDs = formatCourses(courses,'id');

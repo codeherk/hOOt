@@ -62,6 +62,17 @@
             "what do I need to do",
             "what do I need to do for my {position} class"
           ]
+        },
+        {
+          "name": "AnnouncementIntent",
+          "samples": [
+            "announcements",
+            "what are my announcements?",
+            "get announcements",
+            "get my announcements",
+            "do i have any announcements",
+            "what do I need to do for my {position} class"
+          ]
         }
       ],
       "types": []
