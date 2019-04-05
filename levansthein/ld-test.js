@@ -1,7 +1,5 @@
 const levenshtein = require('js-levenshtein');
 
-//hoot
-
 /*
  * Status codes indicating success and other status 
  */
@@ -28,22 +26,29 @@ var _p = arg => console.log(arg);
  */
 var FinalWord = (request, course) => {
 
-    if (course.length == 0 || request == null){
+    //check to see if proper parameters were sent
+    if (request == null){
 
         //return a candidate with a failure status code
-        return new candidate(null);
+        return new candidate(null, FAILURE);
 
-    }//end check for null array
+    } else if (course.length == 0 ) {
 
+        //return a candidate with a failure status code
+        return new candidate(null, NULL_ARRAY);
+
+    }//end check for parameters
+
+    //_p('in Final Word');
     var convertedCourses = preppedCourse(course);
     var reducedCandidates = reduceArr(request, convertedCourses);
 
     //Check for empty candidates array
     if (reducedCandidates.length == 0) {
 
-        var failed = new candidate(null);
-        failed.status = FAILURE;
+        var failed = new candidate(null, NO_MATCH);
 
+        _p(failed);
         return failed;
 
     } else {
@@ -52,8 +57,44 @@ var FinalWord = (request, course) => {
 
     }//end check for empty candidates array
 
+    /*
+     * Add a function to check likelyCandidates and find one single match
+     */
+    //selectCandidate(likelyCandidates);
+
+
+    _p(selectCandidate(likelyCandidates));
 
 }//end final word
+
+/*
+ * Takes in array of likely candidates and returns a single match with highest match value and lowest distance value
+ */
+var selectCandidate = (possibleMatches) => {
+
+    var nomination;                 //position of best match
+    var min = Number.MAX_VALUE;     //default min value set as max
+
+    //if there is only one candidate to choose from return that
+    if (possibleMatches.length == 1) {
+
+        return new candidate(possibleMatches[0], SUCCESS);
+
+    } else {
+
+        for(var i = 0; i<possibleMatches.length; i++) {
+
+            if (possibleMatches[i].match < min) {
+                nomination = i;
+            }//end check for new min
+
+        }//end loop through courses
+
+    }//end check for single candidate
+
+    return new candidate(possibleMatches[nomination], SUCCESS);
+
+}//end
 
 /*
  * Function to prep courses for containment and distance check
@@ -64,12 +105,16 @@ var preppedCourse = (course) => {
 
     var initailizedCourses = [];
 
+    //_p('in preppedCourse');
+
     for(var i = 0; i<course.length; i++){
 
         initailizedCourses.push(new prelimList(course[i], i));
 
     }//end for
     
+    //_p(initailizedCourses);
+
     return initailizedCourses;
 
 }//end preppedCourse
@@ -86,6 +131,7 @@ var reduceArr = (userString, courseArr) => {
 
     var splitUserString = userString.split(' ');
     
+    //_p('in reduced arr');
     //_p(courseArr[0].name + '%%%%%%%%%%%%%%%%%%%%%');
 
     //compare each name in the array with each word in user input
@@ -103,7 +149,7 @@ var reduceArr = (userString, courseArr) => {
             var temp_word = splitUserString[j];
 
             if( temp_course.toLowerCase().includes(temp_word.toLowerCase()) ){
-                //courseArr[i].match++;
+                courseArr[i].match++;
             }//end
 
         }//end compare to words
@@ -115,7 +161,7 @@ var reduceArr = (userString, courseArr) => {
         return bestMatch.match != 0; 
     } );
 
-    _p(matches);
+    //_p(matches);
 
     //_p(courseArr);
 
@@ -154,7 +200,7 @@ var levenCheck = (request, courseArr) => {
         courseArr[i].distance = currentDist;
 
         //test print
-        _p('Course: ' + courseArr[i].name + ' : Distance: ' + currentDist);
+        //_p('Course: ' + courseArr[i].name + ' : Distance: ' + currentDist);
 
         //set min disatance of words
         if ( currentDist < min ) {
@@ -164,10 +210,10 @@ var levenCheck = (request, courseArr) => {
     }//end for
 
     //check for lowest distance words
-    for (var j = 0; j < distanceArr.length; j++) {
+    for (var j = 0; j < courseArr.length; j++) {
 
         //set closest word match to array
-        if (distanceArr[j].distance == min){
+        if (courseArr[j].distance == min){
             candidates.push(courseArr[j]);
         }//end
 
@@ -207,10 +253,22 @@ function hooTCourse(obj){
  * Object to return
  * Holds name of course and position in original array
  */
-function candidate(obj){
-    this.name = obj.name;
-    this.position = obj.position;
-    this.status = NULL_ARRAY;
+function candidate(obj, status){
+
+    if (typeof obj === 'undefined' || obj == null) {
+
+        this.name = null;
+        this.position = null;
+        this.status = status;
+
+    } else {
+
+        this.name = obj.name;
+        this.position = obj.position;
+        this.status = status;
+
+    }
+
 }//end candidate
 
 /*
@@ -229,7 +287,7 @@ var courseInit = (course) => {
 
 }//end courseInit
 
-
+module.export = FinalWord;
 
 
 
@@ -318,9 +376,13 @@ var testFunction = (testArr) => {
  * Test for parser
  *****************************************/
 
-var test_phrase = 'data structures'
+var test_phrase = 'computer'
 _p('User input: ' + test_phrase + '\n');
-reduceArr(test_phrase, preppedCourse(courseInit(test)));
+//reduceArr(test_phrase, preppedCourse(courseInit(test)));
+
+//_p(courseInit(test));
+
+FinalWord(test_phrase, courseInit(test));
 
 /*****************************************
  * Test for parser
