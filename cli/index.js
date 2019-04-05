@@ -48,9 +48,9 @@ const headerOptions = {
 
 var ignoreCourses = ['CIS Student Community Fall 2018', 'TU Alliance for Minority Participation (AMP) Program', 'Computer Science, Math, and Physics (CMP) Students'];
 
-/*******************************************************************************/
-/**************************** FUNCTION DECLARATIONS ****************************/
-/*******************************************************************************/
+/********************************************************************************************/
+/*********************************** FUNCTION DECLARATIONS **********************************/
+/********************************************************************************************/
 const cyan = "\x1b[36m";
 const red = "\x1b[31m";
 const white = "\x1b[37m";
@@ -107,14 +107,14 @@ const getTACourses = function (callback) {
  * @param {Course []} courses 
  * @param {String} by 
  */
-const mapCourses = function (courses, by) {
-  courses = courses.filter((course) => !ignoreCourses.includes(course.name));
+const mapCourses = function (courses, by = null) {
+  // courses = courses.filter((course) => !ignoreCourses.includes(course.name));
   if(by == 'id'){
     return courses.map(course => course.id);
   }else if(by == 'name'){
     return courses.map(course => course.name);
   }
-  return list;
+  return courses
 }
 
 /**
@@ -221,24 +221,30 @@ const formatAssignments = function (tasks){
  * Print formatted list of course names, scores, and letter grades.
  * @param {Course []} courses 
  */
-const getCourseScores = function(courses) {
-  for (var key in courses) {
-    if (courses.hasOwnProperty(key)) {
-      var currLetterGrade = courses[key].enrollments.computed_current_grade;
-      var currScore = courses[key].enrollments.computed_current_score;
-      var courseName = courses[key].name;
+const courseGradesToString = function(courses) {
+  var letterGrade = null, score = null, courseName = null;
+  var speechText = '';
+  for (var i in courses) {
+    if (courses.hasOwnProperty(i)) {
+      letterGrade = courses[i].enrollments.computed_current_grade;
+      score = courses[i].enrollments.computed_current_score;
+      courseName = courses[i].name;
       
-      if (!ignoreCourses.includes(courseName)) {
-        if (currScore == undefined || currScore == null) {
-          log(courseName + " has no current score.");
-        } else if (currLetterGrade == undefined || currLetterGrade == null) {
-          log(courseName + ": " + currScore);
-        } else {
-          log(courseName + ": " + currScore + "(" + currLetterGrade + ")");
-        }
+      if (score == undefined || score == null) {
+        speechText += `${courseName} has no current score`;
+      } else if (letterGrade == undefined || letterGrade == null) {
+        speechText += `${courseName}, ${score}`;
+      } else {
+        speechText += `${courseName}, ${score}, which is an ${letterGrade}`;
+      }
+      if(i == courses.length - 2){
+        speechText += ', and ';
+      }else{
+        speechText += '. '
       }
     }
   }
+  return speechText + "Please be mindful that these scores are unweighted.";
 }
 
 const getContentExports = function (courseID,callback) {
@@ -261,28 +267,21 @@ const getContentExports = function (courseID,callback) {
     });
   }
 
-/*******************************************************************************/
-/************************* END OF FUNCTION DECLARATIONS ************************/
-/*******************************************************************************/
+/********************************************************************************************/
+/******************************* END OF FUNCTION DECLARATIONS *******************************/
+/********************************************************************************************/
 log(ascii_art, cyan);
  
 getCourses(courses => {
-  //log(courses);
-<<<<<<< Updated upstream
-=======
-  // courses = courses.filter((course) => !ignoreCourses.includes(course.name));
 
->>>>>>> Stashed changes
   var speechText = '\n\nYou are currently enrolled in: ' + coursesToString(courses);
   log(speechText);
-  getCourseScores(courses);
+  log("Your current grades are as follows: " + courseGradesToString(courses));
 
   var courseIDs = mapCourses(courses,'id');
   //log(courseIDs);
 
   getUpcomingAssignments(courseIDs[0], tasks => {
-    //log(tasks[0].name)
-    //log(tasks[0].description);
     log(formatAssignments(tasks))
   }).catch(error => {
     log("Could not get assignments. " + error, red);
@@ -291,11 +290,11 @@ getCourses(courses => {
   log("Could not get courses. " + error, red);
 });
 
-// getTACourses(courses => {
-//   //var courseIDs = formatCourses(courses,'id');
-//   var courseIDs = mapCourses(courses,'id');
-//   var speechText = 'You are currently teaching: ' + coursesToString(courses);
-//   log(speechText);
+getTACourses(courses => {
+  //var courseIDs = formatCourses(courses,'id');
+  var courseIDs = mapCourses(courses,'id');
+  var speechText = 'You are currently teaching: ' + coursesToString(courses);
+  log(speechText);
   
   // getContentExports(courseIDs[0], res => {
   //   log(res);
@@ -312,6 +311,6 @@ getCourses(courses => {
   // }).catch(error => {
   //   log("Could not get assignments. " + error, red);
   // });
-// }).catch(error => {
-//   log("Could not get courses. " + error, red);
-// });
+}).catch(error => {
+  log("Could not get courses. " + error, red);
+});

@@ -43,6 +43,16 @@
           ]
         },
         {
+          "name": "TACoursesIntent",
+          "samples": [
+            "courses",
+            "what classes am I teaching",
+            "what am I teaching currently",
+            "what classes do I teach",
+            "what courses do I teach"
+          ]
+        },
+        {
           "name": "AssignmentIntent",
           "slots": [
             {
