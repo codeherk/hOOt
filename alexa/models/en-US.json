@@ -1,7 +1,7 @@
 {
   "interactionModel": {
     "languageModel": {
-      "invocationName": "hoot for canvas",
+      "invocationName": "temple canvas",
       "intents": [
         {
           "name": "AMAZON.CancelIntent",

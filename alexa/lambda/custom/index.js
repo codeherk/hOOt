@@ -31,8 +31,11 @@ var url = `https://templeu.instructure.com/api/v1/`;
 
 // URL parameters for a courses request.
 // Filters HTTP request results to provide only actively enrolled courses.
-var courseURL = 'courses?enrollment_state=active&enrollment_type=student';
-
+// var courseURL = 'courses?enrollment_state=active&enrollment_type=student&include[]=total_scores';
+var courseURL = 'courses?enrollment_state=active';
+var studentURL = '&enrollment_type=student';
+var TA_URL = '&enrollment_type=ta';
+var scoreURL = '&include[]=total_scores';
 /**
  * For the addition of header options including access token to HTTP request
  */
@@ -50,6 +53,173 @@ const setHeaderOptions = function(token){
     }
   }
 }
+
+/**
+ * Makes an HTTP GET request to Canvas LMS API.
+ * Creates Course objects by parsing received JSON response.
+ * Passes array of Course objects to callback function.
+ * @param {function} callback 
+ */
+const getCourses = function (callback) {
+  return axios.get(url + courseURL + studentURL + scoreURL, headerOptions)
+    .then(response => {
+      //log(response) //debug
+      var courses = [];
+      for (let i = 0; i < response.data.length; i++) {
+        courses.push(new Course(response.data[i]));
+      }
+      courses = courses.filter((course) => !ignoreCourses.includes(course.name)); 
+      //log(courses) //debug
+      callback(courses);
+    });
+}
+
+
+/**
+ * Remove ignored courses from course list.
+ * Return list of either course names or course ids depending on 'by' param.
+ * @param {Course []} courses 
+ * @param {String} by 
+ */
+const mapCourses = function (courses, by) {
+  //courses = courses.filter((course) => !ignoreCourses.includes(course.name)); 
+  if (by == 'id') {
+    return courses.map(course => course.id);
+  } else if (by == 'name') {
+    return courses.map(course => course.name);
+  }
+  return list;
+}
+
+/**
+ * Get list of course names from 'courses' param.
+ * Format course list into easily vocalized String.
+ * @param {Course []} courses 
+ * @returns {String} list of formatted, vocalizable course names.
+ */
+const coursesToString = function (courses) {
+  var titles = mapCourses(courses, "name");
+  var list = ''; // set list as empty string
+  var i;
+  // loop thru courses, and format it to string that will be spoken
+  for (i = 0; i < titles.length - 1; i++) {
+    list += titles[i] + ', ';
+  }
+
+  list += 'and ' + titles[i] + '.'; // and <last course name>. 
+  return list;
+}
+
+/**
+ * Extract course names, scores, and letter grades from courses.
+ * Print formatted list of course names, scores, and letter grades.
+ * @param {Course []} courses 
+ */
+const courseGradesToString = function(courses) {
+  var letterGrade = null, score = null, courseName = null;
+  var speechText = '';
+  for (var i in courses) {
+    if (courses.hasOwnProperty(i)) {
+      letterGrade = courses[i].enrollments.computed_current_grade;
+      score = courses[i].enrollments.computed_current_score;
+      courseName = courses[i].name;
+      
+      if (score == undefined || score == null) {
+        speechText += `${courseName} has no current score`;
+      } else if (letterGrade == undefined || letterGrade == null) {
+        speechText += `${courseName}, ${score}`;
+      } else {
+        speechText += `${courseName}, ${score}, which is an ${letterGrade}`;
+      }
+      if(i == courses.length - 2){
+        speechText += ', and ';
+      }else{
+        speechText += '. '
+      }
+    }
+  }
+  return speechText + "Please be mindful that these scores are unweighted.";
+}
+
+/**
+ * Makes an HTTP GET request to Canvas LMS API, specifying API returns upcoming assignments only.
+ * Receives a response from API with all of a user's upcoming assignments for a course with the given course ID.
+ * Creates an array of Assignment objects based on API's response.
+ * Calls callback function, passing in upcoming Assignment array as param.
+ * @param {String} courseID 
+ * @param {function} callback 
+ */
+const getUpcomingAssignments = function(courseID,callback){
+  var request = url + 'courses/' + courseID + '/assignments?bucket=upcoming';
+  return axios.get(request, headerOptions)
+    .then(response => {
+      var data = response.data;
+      var assignments = [];
+      //log(response.status);
+      for (let i = 0; i < data.length; i++){
+        assignments.push(new Assignment(data[i]));
+      }
+      //log(data[0]);
+      //log(response); // debug
+      //log(assignments);
+      callback(assignments);
+    });
+};
+
+/**
+ * Create array of Assignments.
+ * Add assignments from task param. into new array adding due-date details.
+ * @param {Assignment []} tasks 
+ * @returns {Assignment []} list
+ */
+const formatAssignments = function (tasks){
+  var list = [];
+  var detail;
+  for (let i = 0; i < tasks.length; i++){
+    detail = `You have ${tasks[i].name} `;
+    if(tasks[i].due){
+      detail += `that is due ${tasks[i].due}.`
+    }else{
+      detail += 'without a due date. Contact your professor for more info'
+    }
+    list.push(detail);
+  }
+  return list;
+}
+
+// https is a default part of Node.JS.  Read the developer doc:  https://nodejs.org/api/https.html
+function buildHttpGetOptions(accessToken) {
+  return {
+      //Replace the host with your cognito user pool domain 
+      method: 'GET',
+      baseURL: 'https://alexa-hoot.auth.us-east-1.amazoncognito.com',
+      url: '/oauth2/userInfo',
+      port: 443,
+      headers: {
+          'authorization': 'Bearer ' + accessToken
+      }
+  };
+}
+
+function httpGet(options, callback) {
+  return axios(options).then(res => {
+    callback(res);
+  });
+}
+
+// upon an error, we should said there is an error and end session
+function speakError(handlerInput, speechText , error){
+  console.log(`${speechText}. ERROR: ${error}`);
+  return handlerInput.responseBuilder
+          .speak(speechText)
+          .getResponse();
+}
+
+
+/********************************************************************************************/
+/******************************* END OF FUNCTION DECLARATIONS *******************************/
+/********************************************************************************************/
+
 /**
  * Handler for skill's Launch Request Intent.
  * Invokes canHandle() to ensure request is a LaunchRequest.
@@ -314,6 +484,7 @@ const AssignmentIntentHandler = {
     return new Promise(resolve => {
       getCourses(courses => {
         classes = courses;
+        // classes = courses.filter((course) => !ignoreCourses.includes(course.name)); 
         resolve(handlerInput.responseBuilder
           .addDelegateDirective(intent)
           .getResponse()
@@ -360,14 +531,12 @@ const GetAssignmentIntentHandler = {
         // }
         resolve(handlerInput.responseBuilder
             .speak(output)
+            .withSimpleCard(classes[index], output)
             .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
             .getResponse()
         )
       }).catch(error => {
-        resolve(handlerInput.responseBuilder
-          .speak(`I had trouble getting your assignments. Try again later.`)
-          .getResponse()
-        );
+        resolve(speakError(handlerInput,`I had trouble getting your assignments. Try again later.`, error));
       });
         
         // var speechText = 'You are currently enrolled in: ' + coursesToString(courses);

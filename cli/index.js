@@ -32,8 +32,10 @@ const { access_token } = require('./config');
 var url = `https://templeu.instructure.com/api/v1/`;
 // URL parameters for a courses request.
 // Filters HTTP request results to provide only actively enrolled courses.
-var courseURL = 'courses?enrollment_state=active&enrollment_type=student&include[]=total_scores';
-var TA_URL = 'courses?enrollment_state=active&enrollment_type=ta';
+var courseURL = 'courses?enrollment_state=active';
+var studentURL = '&enrollment_type=student';
+var TA_URL = '&enrollment_type=ta';
+var scoreURL = '&include[]=total_scores';
 
 /**
  * For the addition of header options including access token to HTTP request
@@ -72,7 +74,21 @@ const log = function (){
  * @param {function} callback 
  */
 const getCourses = function (callback) {
-  return axios.get(url + courseURL, headerOptions)
+  return axios.get(url + courseURL + studentURL + scoreURL, headerOptions)
+  .then(response => {
+    //log(response) //debug
+    var courses = [];
+    for(let i = 0; i < response.data.length; i++){
+      courses.push(new Course(response.data[i]));
+    }
+
+    courses = courses.filter((course) => !ignoreCourses.includes(course.name));
+    //log(courses) //debug
+    callback(courses);
+  });
+}
+const getTACourses = function (callback) {
+  return axios.get(url + courseURL + TA_URL, headerOptions)
   .then(response => {
     //log(response) //debug
     var courses = [];
@@ -80,6 +96,7 @@ const getCourses = function (callback) {
       courses.push(new Course(response.data[i]));
     }
     //log(courses) //debug
+    courses = courses.filter((course) => !ignoreCourses.includes(course.name));
     callback(courses);
   });
 }
@@ -119,8 +136,11 @@ const coursesToString = function(courses){
   for (i = 0; i < titles.length - 1; i++){
     list += titles[i] + ', ';
   }
-
-  list += 'and ' + titles[i] + '.'; // and <last course name>. 
+  if(i == 0){
+    list += titles[i] + '.';
+  }else{
+    list += 'and ' + titles[i] + '.'; // and <last course name>. 
+  }
   return list;
 }
 
@@ -248,6 +268,11 @@ log(ascii_art, cyan);
  
 getCourses(courses => {
   //log(courses);
+<<<<<<< Updated upstream
+=======
+  // courses = courses.filter((course) => !ignoreCourses.includes(course.name));
+
+>>>>>>> Stashed changes
   var speechText = '\n\nYou are currently enrolled in: ' + coursesToString(courses);
   log(speechText);
   getCourseScores(courses);
@@ -272,21 +297,21 @@ getCourses(courses => {
 //   var speechText = 'You are currently teaching: ' + coursesToString(courses);
 //   log(speechText);
   
-//   // getContentExports(courseIDs[0], res => {
-//   //   log(res);
-//   getUsers(courseIDs[0], res => {
-//     //log(res);
-//   })
+  // getContentExports(courseIDs[0], res => {
+  //   log(res);
+  // getUsers(courseIDs[0], res => {
+  //   log(res);
+  // })
 
-//   // get all assignments and tell total
+  // get all assignments and tell total
 
-//   // getAssignments(courseIDs[0], tasks => {
-//   //   //log(tasks[0].name)
-//   //   //log(tasks[0].description);
-//   //   log(formatAssignments(tasks))
-//   // }).catch(error => {
-//   //   log("Could not get assignments. " + error, red);
-//   // });
+  // getAssignments(courseIDs[0], tasks => {
+  //   //log(tasks[0].name)
+  //   //log(tasks[0].description);
+  //   log(formatAssignments(tasks))
+  // }).catch(error => {
+  //   log("Could not get assignments. " + error, red);
+  // });
 // }).catch(error => {
 //   log("Could not get courses. " + error, red);
 // });
