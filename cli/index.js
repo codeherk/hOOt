@@ -33,8 +33,11 @@ var url = `https://templeu.instructure.com/api/v1/`;
 // URL parameters for a courses request.
 // Filters HTTP request results to provide only actively enrolled courses.
 var courseURL = 'courses?enrollment_state=active';
+<<<<<<< HEAD
 var announcementsURL = 'announcements?'
 
+=======
+>>>>>>> codeherk
 var studentURL = '&enrollment_type=student';
 var TA_URL = '&enrollment_type=ta';
 var scoreURL = '&include[]=total_scores';
@@ -349,7 +352,10 @@ getCourses(courses => {
   log("Could not get courses. " + error, red);
 });
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> codeherk
 getTACourses(courses => {
   //var courseIDs = formatCourses(courses,'id');
   var courseIDs = mapCourses(courses,'id');

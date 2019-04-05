@@ -23,7 +23,11 @@
             "codeUri": "lambda/custom",
             "functionName": "getCourses",
             "handler": "index.handler",
+<<<<<<< HEAD
             "revisionId": "9b86daba-f138-43b8-aadc-439c148166af",
+=======
+            "revisionId": "90718f8a-96dd-43fc-953d-e38cfd90bf80",
+>>>>>>> codeherk
             "runtime": "nodejs8.10"
           }
         ]

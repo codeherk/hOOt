@@ -140,6 +140,10 @@ const coursesToString = function (courses) {
 const courseGradesToString = function(courses) {
   var letterGrade = null, score = null, courseName = null;
   var speechText = '';
+<<<<<<< HEAD
+=======
+
+>>>>>>> codeherk
   for (var i in courses) {
     if (courses.hasOwnProperty(i)) {
       letterGrade = courses[i].enrollments.computed_current_grade;
