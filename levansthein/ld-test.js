@@ -1,3 +1,10 @@
+/**
+ * Algorithm to check for course name that has the best match to user's requested phrase
+ * Uses levenshtein algorithm to check difference between phrases
+ * Checks for phrase being a sub string of other words to better increase match
+ * 
+ * 
+ */
 const levenshtein = require('js-levenshtein');
 
 /*
@@ -7,7 +14,7 @@ const levenshtein = require('js-levenshtein');
 var SUCCESS = 100;      //indicates cadidate was found successfully
 var NO_MATCH = 401      //indicates no phrase is not contained in any course
 var NULL_ARRAY = 402;   //indicates array was null
-var FAILURE = 404;      //indicates something went wrong initially
+var NULL_PHRASE = 404;      //indicates something went wrong initially
 
 
 /*
@@ -29,13 +36,13 @@ var FinalWord = (request, course) => {
     //check to see if proper parameters were sent
     if (request == null){
 
-        //return a candidate with a failure status code
-        return new candidate(null, FAILURE);
+        //return a candidate with a NULL_PHRASE status code
+        return new candidate(null, NULL_PHRASE);
 
     } else if (course.length == 0 ) {
 
-        //return a candidate with a failure status code
-        return new candidate(null, NULL_ARRAY);
+        //return a candidate with a NULL_PHRASE status code
+        return new candidate(null, NULL_PHRASE);
 
     }//end check for parameters
 
@@ -150,7 +157,7 @@ var reduceArr = (userString, courseArr) => {
     //reduce array to only best matches
     var matches = courseArr.filter (bestMatch => {
         return bestMatch.match != 0; 
-    } );
+    });
 
     return matches;
 
@@ -273,149 +280,5 @@ var toString = (list) => {
 
 }//end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //things to export
-module.export = { FinalWord };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-/*
- * Object used to mimic course array given by hooT
- * ############Used for testing only###############
- */
-function hooTCourse(obj){
-    this.id = Math.floor(Math.random()*10000);
-    this.name = obj;
-}//end hooTCourses
-
-/*
- * Function to convert test arrays to arrays hooT may give
- * ##################Used for testing only################
- */
-var courseInit = (course) => {
-
-    var initCourse = [];
-
-    for(var i = 0; i<course.length; i++){
-        initCourse.push(new hooTCourse(course[i]));
-    }//end
-
-    return initCourse;
-
-}//end courseInit
-
-
-
-//log('\nAre you asking for, ' + toString( levenCheck(testWord,test) ) );
-
-/*
- * Test procedure
- */
-
-//array of potential enrollments
-var test = ['Calculus 1','Calculus 2','Calculus 3','Mosaic I',
-            'Projects in Computer Science','Microarchitecture',
-            'Data Structures and Algorithm','Software Design',
-            'Mathematical Concepts in Computing II','Data Structures'];
-
-//list of words to test against
-var testArr = ['calculus one','projects','capstone','projects in','data structure'];
-//set test word
-var testWord = testArr[4];
-
-//log(toString(test) + '\n');
-
-var testFunction = (testArr) => {
-
-    for (var k = 0; k < testArr.length; k++) {
-
-        var count = k + 1;
-    
-        log('Result: ' + count);
-        log('Word being asked for is: ' + '[' + testArr[k] + ']');
-        log('\nHere is the result: ');
-        log('\n\tAre you asking for: ' + '\n\t' + toString( levenCheck(testArr[k],test) ) + '\n');
-    
-    }//end for
-
-}//end test function
-
-/*
- * End Test procedure
- */
-
-
-
-
-//log(courseInit(test));
-//log(preppedCourse(courseInit(test))[2].name);
-
-/*
- * Test for parser
- *****************************************/
-
-var test_phrase = 'math'
-_p('User input: ' + test_phrase + '\n');
-//reduceArr(test_phrase, preppedCourse(courseInit(test)));
-
-//_p(courseInit(test));
-
-//FinalWord(test_phrase, courseInit(test));
-_p(FinalWord(test_phrase, courseInit(test)));
-
-/*****************************************
- * Test for parser
- */
-
-
-//log('poopypants is poopy'.includes('poopy'));
-//log('poopypants is poopy'.includes('grllo'));
-
-/*
- * Test for levenshtein
- *****************************************/
-
-//var gg = levenCheck(testWord,test);
-//testFunction(testArr);
-
-/*****************************************
- * Test for parser
- */
-
-//log(gg);
-
-//log(toString(test));
-
-
-
-/**
- * medium example filter array
- */
+module.exports = { FinalWord };
