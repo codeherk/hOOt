@@ -39,7 +39,6 @@ var FinalWord = (request, course) => {
 
     }//end check for parameters
 
-    //_p('in Final Word');
     var convertedCourses = preppedCourse(course);
     var reducedCandidates = reduceArr(request, convertedCourses);
 
@@ -48,7 +47,6 @@ var FinalWord = (request, course) => {
 
         var failed = new candidate(null, NO_MATCH);
 
-        _p(failed);
         return failed;
 
     } else {
@@ -63,12 +61,14 @@ var FinalWord = (request, course) => {
     //selectCandidate(likelyCandidates);
 
 
-    _p(selectCandidate(likelyCandidates));
+    //_p(selectCandidate(likelyCandidates));
+
+    return selectCandidate(likelyCandidates);
 
 }//end final word
 
 /*
- * Takes in array of likely candidates and returns a single match with highest match value and lowest distance value
+ * Takes in array of likely candidates and returns a single candidate with highest match value and lowest distance value
  */
 var selectCandidate = (possibleMatches) => {
 
@@ -84,15 +84,18 @@ var selectCandidate = (possibleMatches) => {
 
         for(var i = 0; i<possibleMatches.length; i++) {
 
-            if (possibleMatches[i].match < min) {
-                nomination = i;
+            if (possibleMatches[i].distance < min) {
+
+                min = possibleMatches[i].distance;
+                nomination = possibleMatches[i];
+
             }//end check for new min
 
         }//end loop through courses
 
     }//end check for single candidate
 
-    return new candidate(possibleMatches[nomination], SUCCESS);
+    return new candidate(nomination ,SUCCESS);
 
 }//end
 
@@ -105,15 +108,11 @@ var preppedCourse = (course) => {
 
     var initailizedCourses = [];
 
-    //_p('in preppedCourse');
-
     for(var i = 0; i<course.length; i++){
 
-        initailizedCourses.push(new prelimList(course[i], i));
+        initailizedCourses.push(new prelimList(course[i].name, course[i].id, i));
 
     }//end for
-    
-    //_p(initailizedCourses);
 
     return initailizedCourses;
 
@@ -131,23 +130,15 @@ var reduceArr = (userString, courseArr) => {
 
     var splitUserString = userString.split(' ');
     
-    //_p('in reduced arr');
-    //_p(courseArr[0].name + '%%%%%%%%%%%%%%%%%%%%%');
-
     //compare each name in the array with each word in user input
     for(var i = 0; i<courseArr.length; i++){
 
-        //_p(courseArr[i].name + ' *****plus');
-
         var temp_course = courseArr[i].name;
-
+        
         //compare each word with each phrase
         for(var j = 0; j<splitUserString.length; j++){
 
-            //_p(splitUserString[j]);
-
             var temp_word = splitUserString[j];
-
             if( temp_course.toLowerCase().includes(temp_word.toLowerCase()) ){
                 courseArr[i].match++;
             }//end
@@ -160,10 +151,6 @@ var reduceArr = (userString, courseArr) => {
     var matches = courseArr.filter (bestMatch => {
         return bestMatch.match != 0; 
     } );
-
-    //_p(matches);
-
-    //_p(courseArr);
 
     return matches;
 
@@ -199,9 +186,6 @@ var levenCheck = (request, courseArr) => {
         //load disgance of word onto array
         courseArr[i].distance = currentDist;
 
-        //test print
-        //_p('Course: ' + courseArr[i].name + ' : Distance: ' + currentDist);
-
         //set min disatance of words
         if ( currentDist < min ) {
             min = currentDist;
@@ -233,9 +217,10 @@ var levenCheck = (request, courseArr) => {
 /*
  * Temporary object to hold informatation about given courses array
  */
-function prelimList(course, position){
-    this.name = course.name;
+function prelimList(name, id, position){
+    this.name = name;
     this.position = position;
+    this.id = id; ///////////////////////////////////////////////////
     this.match = 0;
     this.distance = 0;
 }//end preLimList
@@ -255,39 +240,12 @@ function hooTCourse(obj){
  */
 function candidate(obj, status){
 
-    if (typeof obj === 'undefined' || obj == null) {
-
-        this.name = null;
-        this.position = null;
-        this.status = status;
-
-    } else {
-
-        this.name = obj.name;
-        this.position = obj.position;
-        this.status = status;
-
-    }
+    this.object = obj;
+    this.status = status;
 
 }//end candidate
 
-/*
- * Function to convert test arrays to arrays hooT may give
- * ##################Used for testing only################
- */
-var courseInit = (course) => {
 
-    var initCourse = [];
-
-    for(var i = 0; i<course.length; i++){
-        initCourse.push(new hooTCourse(course[i]));
-    }//end
-
-    return initCourse;
-
-}//end courseInit
-
-module.export = FinalWord;
 
 
 
@@ -325,6 +283,54 @@ var toString = (list) => {
 
 
 
+
+
+
+
+
+//things to export
+module.export = { FinalWord };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+/*
+ * Object used to mimic course array given by hooT
+ * ############Used for testing only###############
+ */
+function hooTCourse(obj){
+    this.id = Math.floor(Math.random()*10000);
+    this.name = obj;
+}//end hooTCourses
+
+/*
+ * Function to convert test arrays to arrays hooT may give
+ * ##################Used for testing only################
+ */
+var courseInit = (course) => {
+
+    var initCourse = [];
+
+    for(var i = 0; i<course.length; i++){
+        initCourse.push(new hooTCourse(course[i]));
+    }//end
+
+    return initCourse;
+
+}//end courseInit
 
 
 
@@ -376,13 +382,14 @@ var testFunction = (testArr) => {
  * Test for parser
  *****************************************/
 
-var test_phrase = 'computer'
+var test_phrase = 'math'
 _p('User input: ' + test_phrase + '\n');
 //reduceArr(test_phrase, preppedCourse(courseInit(test)));
 
 //_p(courseInit(test));
 
-FinalWord(test_phrase, courseInit(test));
+//FinalWord(test_phrase, courseInit(test));
+_p(FinalWord(test_phrase, courseInit(test)));
 
 /*****************************************
  * Test for parser
