@@ -1,4 +1,4 @@
-const LD = require('./ld-test');
+const LD = require('./levenDistance');
 
 //short hand for console log
 var log = arg => console.log(arg);

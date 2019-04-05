@@ -19,6 +19,7 @@ const axios = require('axios');
 const {
   Course
 } = require('./canvas');
+const ld = required('.levenDistance');
 //var access_token = "ACCESS TOKEN GOES HERE" // NEVER, EVER PUSH YOUR ACCESS TOKEN UP TO GITHUB
 
 // base URL for HTTP requests to the Canvas LMS API
@@ -210,45 +211,86 @@ const GetAssignmentIntentHandler = {
     const currentIntent = handlerInput.requestEnvelope.request.intent;       
     var position = currentIntent.slots.position.value;
 
-    var index = position - 1;
-    return new Promise(resolve => {
-      var courseIDs = mapCourses(classes,'id');
-      classes = mapCourses(classes,'name');
-      getUpcomingAssignments(courseIDs[index], tasks => {
-        var list = formatAssignments(tasks);
-        var output = (list === undefined || list.length == 0) ? 'there are no upcoming assignments' : list[0];
-        output = `For ${classes[index]}, ${output}`;
-        // var output;
-        // if(tasks.length == 0){
-        //   output = 'March 25th, 2019, 11:59pm';
-        // }else{
-        //   output = tasks[0].name;
-        // }
-        resolve(handlerInput.responseBuilder
-            .speak(output)
-            .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
-            .getResponse()
-        )
-      }).catch(error => {
-        resolve(handlerInput.responseBuilder
-          .speak(`I had trouble getting your assignments. Try again later.`)
-          .getResponse()
-        );
-      });
+    var match = ld.FinalWord(position, classes);
+
+    switch(match.status) {
+
+      case match.status == 100:
+        course_ID = match.object.id;
+
+        return new Promise(resolve => {
+      
+          var courseIDs = mapCourses(classes,'id');
+          classes = mapCourses(classes,'name');
+          getUpcomingAssignments(course_ID, tasks => {
+            var list = formatAssignments(tasks);
+            var output = (list === undefined || list.length == 0) ? 'there are no upcoming assignments' : list[0];
+            output = `For ${classes[match.object.position]}, ${output}`;
+            // var output;
+            // if(tasks.length == 0){
+            //   output = 'March 25th, 2019, 11:59pm';
+            // }else{
+            //   output = tasks[0].name;
+            // }
+            resolve(handlerInput.responseBuilder
+                .speak(output)
+                .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
+                .getResponse()
+            )
+          }).catch(error => {
+            resolve(handlerInput.responseBuilder
+              .speak(`I had trouble getting your assignments. Try again later.`)
+              .getResponse()
+            );
+          });
+            
+            // var speechText = 'You are currently enrolled in: ' + coursesToString(courses);
+            // resolve(handlerInput.responseBuilder
+            //   .speak(speechText)
+            //   .withStandardCard("Enrolled Courses", speechText, smallImgUrl, largeImgUrl)
+            //   .getResponse()
+            // );
+          // }).catch(error => {
+          //   resolve(handlerInput.responseBuilder
+          //     .speak('Could not get courses.')
+          //     .getResponse()
+          //   );
+          // });
+        });
+
         
-        // var speechText = 'You are currently enrolled in: ' + coursesToString(courses);
-        // resolve(handlerInput.responseBuilder
-        //   .speak(speechText)
-        //   .withStandardCard("Enrolled Courses", speechText, smallImgUrl, largeImgUrl)
-        //   .getResponse()
-        // );
-      // }).catch(error => {
-      //   resolve(handlerInput.responseBuilder
-      //     .speak('Could not get courses.')
-      //     .getResponse()
-      //   );
-      // });
-    });
+      case match.status == 401:
+
+        var output = 'I can\'t find the class you\'re asking for, does it go by another name';
+
+        return handlerInput.responseBuilder
+          .speak(speechText)
+          .withShouldEndSession(false) 
+          .getResponse();
+
+        
+      case match.status == 402:
+
+        var output = 'I\'m having trouble getting to your courses. Try again later.';
+
+        return handlerInput.responseBuilder
+          .speak(speechText)
+          .withShouldEndSession(false) 
+          .getResponse();
+        
+      case match.status == 404:
+
+        var output = 'I could\'t catch what you said. Could you try asking again?';
+
+        return handlerInput.responseBuilder
+          .speak(speechText)
+          .withShouldEndSession(false) 
+          .getResponse();
+
+    }//end switch
+
+    //var index = position - 1;
+    
   },
 };
 

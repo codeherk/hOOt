@@ -36,7 +36,7 @@
           "slots": [
             {
               "name": "Position",
-              "type": "AMAZON.Ordinal",
+              "type": "AMAZON.SearchQuery",
               "samples": [
                 "{position}",
                 "index {position}"
@@ -64,7 +64,7 @@
           "slots": [
             {
               "name": "position",
-              "type": "AMAZON.Ordinal",
+              "type": "AMAZON.SearchQuery",
               "confirmationRequired": false,
               "elicitationRequired": true,
               "prompts": {
