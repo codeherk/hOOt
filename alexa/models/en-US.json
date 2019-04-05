@@ -1,7 +1,7 @@
 {
   "interactionModel": {
     "languageModel": {
-      "invocationName": "hoot for canvas",
+      "invocationName": "temple canvas",
       "intents": [
         {
           "name": "AMAZON.CancelIntent",
@@ -40,6 +40,16 @@
             "list my current scores",
             "list my course scores",
             "what are my course scores"
+          ]
+        },
+        {
+          "name": "TACoursesIntent",
+          "samples": [
+            "courses",
+            "what classes am I teaching",
+            "what am I teaching currently",
+            "what classes do I teach",
+            "what courses do I teach"
           ]
         },
         {

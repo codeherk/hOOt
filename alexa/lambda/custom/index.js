@@ -31,8 +31,11 @@ var url = `https://templeu.instructure.com/api/v1/`;
 
 // URL parameters for a courses request.
 // Filters HTTP request results to provide only actively enrolled courses.
-var courseURL = 'courses?enrollment_state=active&enrollment_type=student&include[]=total_scores';
-
+// var courseURL = 'courses?enrollment_state=active&enrollment_type=student&include[]=total_scores';
+var courseURL = 'courses?enrollment_state=active';
+var studentURL = '&enrollment_type=student';
+var TA_URL = '&enrollment_type=ta';
+var scoreURL = '&include[]=total_scores';
 /**
  * For the addition of header options including access token to HTTP request
  */
@@ -63,16 +66,31 @@ const setHeaderOptions = function(token){
  * @param {function} callback 
  */
 const getCourses = function (callback) {
-  return axios.get(url + courseURL, headerOptions)
+  return axios.get(url + courseURL + studentURL + scoreURL, headerOptions)
     .then(response => {
       //log(response) //debug
       var courses = [];
       for (let i = 0; i < response.data.length; i++) {
         courses.push(new Course(response.data[i]));
       }
+      courses = courses.filter((course) => !ignoreCourses.includes(course.name));
       //log(courses) //debug
       callback(courses);
     });
+}
+
+const getTACourses = function (callback) {
+  return axios.get(url + courseURL + TA_URL, headerOptions)
+  .then(response => {
+    //log(response) //debug
+    var courses = [];
+    for(let i = 0; i < response.data.length; i++){
+      courses.push(new Course(response.data[i]));
+    }
+    //log(courses) //debug
+    courses = courses.filter((course) => !ignoreCourses.includes(course.name));
+    callback(courses);
+  });
 }
 
 /**
@@ -106,7 +124,11 @@ const coursesToString = function (courses) {
     list += titles[i] + ', ';
   }
 
-  list += 'and ' + titles[i] + '.'; // and <last course name>. 
+  if(i == 0){
+    list += titles[i] + '.';
+  }else{
+    list += 'and ' + titles[i] + '.'; // and <last course name>. 
+  }
   return list;
 }
 
@@ -139,6 +161,52 @@ const courseGradesToString = function(courses) {
     }
   }
   return speechText + "Please be mindful that these scores are unweighted.";
+}
+
+/**
+ * Makes an HTTP GET request to Canvas LMS API, specifying API returns upcoming assignments only.
+ * Receives a response from API with all of a user's upcoming assignments for a course with the given course ID.
+ * Creates an array of Assignment objects based on API's response.
+ * Calls callback function, passing in upcoming Assignment array as param.
+ * @param {String} courseID 
+ * @param {function} callback 
+ */
+const getUpcomingAssignments = function(courseID,callback){
+  var request = url + 'courses/' + courseID + '/assignments?bucket=upcoming';
+  return axios.get(request, headerOptions)
+    .then(response => {
+      var data = response.data;
+      var assignments = [];
+      //log(response.status);
+      for (let i = 0; i < data.length; i++){
+        assignments.push(new Assignment(data[i]));
+      }
+      //log(data[0]);
+      //log(response); // debug
+      //log(assignments);
+      callback(assignments);
+    });
+};
+
+/**
+ * Create array of Assignments.
+ * Add assignments from task param. into new array adding due-date details.
+ * @param {Assignment []} tasks 
+ * @returns {Assignment []} list
+ */
+const formatAssignments = function (tasks){
+  var list = [];
+  var detail;
+  for (let i = 0; i < tasks.length; i++){
+    detail = `You have ${tasks[i].name} `;
+    if(tasks[i].due){
+      detail += `that is due ${tasks[i].due}.`
+    }else{
+      detail += 'without a due date. Contact your professor for more info'
+    }
+    list.push(detail);
+  }
+  return list;
 }
 
 // https is a default part of Node.JS.  Read the developer doc:  https://nodejs.org/api/https.html
@@ -279,6 +347,28 @@ const CoursesIntentHandler = {
     });
   }
 };
+const TACoursesIntentHandler = {
+  canHandle(handlerInput) {
+    return handlerInput.requestEnvelope.request.type === 'IntentRequest' &&
+      handlerInput.requestEnvelope.request.intent.name === 'TACoursesIntent';
+  },
+  handle(handlerInput) {
+    return new Promise(resolve => {
+      getTACourses(courses => {
+        var question = ' Anything else I can help you with?';
+        var speechText = 'You are currently teaching: ' + coursesToString(courses);
+        resolve(handlerInput.responseBuilder
+          .speak(speechText + question)
+          .withStandardCard("Teaching Courses", speechText, smallImgUrl, largeImgUrl)
+          .withShouldEndSession(false)
+          .getResponse()          
+        );
+      }).catch(error => {
+        resolve(speakError(handlerInput,'I am having a little trouble getting your TA courses. Try again later.', error));
+      });
+    });
+  }
+};
 
 /**
  * Handler for skill's getCourseScores Intent.
@@ -296,7 +386,7 @@ const CourseScoresIntentHandler = {
   handle(handlerInput) {
     return new Promise(resolve => {
       getCourses(courses => {
-        courses = courses.filter((course) => !ignoreCourses.includes(course.name)); 
+        //courses = courses.filter((course) => !ignoreCourses.includes(course.name)); 
         var question = ' Anything else I can help you with?';
         var speechText = 'Your current grades are as follows: ' + courseGradesToString(courses);
         resolve(handlerInput.responseBuilder
@@ -330,8 +420,8 @@ const AssignmentIntentHandler = {
     const intent = handlerInput.requestEnvelope.request.intent;
     return new Promise(resolve => {
       getCourses(courses => {
-        // classes = courses;
-        classes = courses.filter((course) => !ignoreCourses.includes(course.name)); 
+        classes = courses;
+        // classes = courses.filter((course) => !ignoreCourses.includes(course.name)); 
         resolve(handlerInput.responseBuilder
           .addDelegateDirective(intent)
           .getResponse()
@@ -378,28 +468,13 @@ const GetAssignmentIntentHandler = {
         // }
         resolve(handlerInput.responseBuilder
             .speak(output)
+            .withSimpleCard(classes[index], output)
             .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
             .getResponse()
         )
       }).catch(error => {
-        resolve(handlerInput.responseBuilder
-          .speak(`I had trouble getting your assignments. Try again later.`)
-          .getResponse()
-        );
+        resolve(speakError(handlerInput,`I had trouble getting your assignments. Try again later.`, error));
       });
-        
-        // var speechText = 'You are currently enrolled in: ' + coursesToString(courses);
-        // resolve(handlerInput.responseBuilder
-        //   .speak(speechText)
-        //   .withStandardCard("Enrolled Courses", speechText, smallImgUrl, largeImgUrl)
-        //   .getResponse()
-        // );
-      // }).catch(error => {
-      //   resolve(handlerInput.responseBuilder
-      //     .speak('Could not get courses.')
-      //     .getResponse()
-      //   );
-      // });
     });
   },
 };
@@ -494,6 +569,7 @@ exports.handler = skillBuilder
     HelloWorldIntentHandler,
     CourseScoresIntentHandler,
     CoursesIntentHandler,
+    TACoursesIntentHandler,
     AssignmentIntentHandler,
     GetAssignmentIntentHandler,
     HelpIntentHandler,
