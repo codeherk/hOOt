@@ -1,0 +1,33 @@
+const <thing> = require('./ld-test');
+
+var thingToSay;
+
+switch(<thing>.status) {
+	case <thing>.status == 100:
+		
+		url = <stuff> + <thing>.object.id;
+		<call get assignments function>
+		
+		thingToSay = assignemtns;
+		
+		break;
+		
+	case <thing>.status == 401:
+		
+		thingToSay = 'Sorry I couldn't find the course you specified. Is there another name for it?';
+		
+		break;
+		
+	case <thing>.status == 402:
+		
+		thingToSay = 'I'm having trouble accessing your courses try again later';
+		
+		break;
+		
+	case <thing>.status == 404:
+		
+		thingToSay = 'I didn't hear what you said';
+		
+		break;
+		
+}//end
