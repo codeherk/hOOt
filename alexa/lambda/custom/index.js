@@ -19,7 +19,7 @@ const axios = require('axios');
 const { Course, Assignment } = require('./canvas');
 //Helper Function for calling the Cognito /oauth2/userInfo to get user info using the accesstoken
 const https = require('https');
-const ld = require('./levenDistance');
+const ld = require('./levenshtein');
 //const { access_token } = require('./config'); // create config.js in your code
 
 //var access_token = '';
