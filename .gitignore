@@ -85,7 +85,9 @@ typings/
 .dynamodb/
 
 *config.js
-*canvas.js
+
+# Ignore alexa project config... It will most likely be different for each team member
+*.ask/
 
 # End of https://www.gitignore.io/api/node
 *.DS_Store
