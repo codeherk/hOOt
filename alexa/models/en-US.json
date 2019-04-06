@@ -57,7 +57,7 @@
           "slots": [
             {
               "name": "position",
-              "type": "AMAZON.Ordinal",
+              "type": "AMAZON.SearchQuery",
               "samples": [
                 "{position}",
                 "index {position}"
@@ -77,11 +77,11 @@
           "name": "AnnouncementIntent",
           "samples": [
             "announcements",
-            "what are my announcements?",
+            "what are my announcements",
             "get announcements",
             "get my announcements",
             "do i have any announcements",
-            "what do I need to do for my {position} class"
+            "what do I need to do for my class"
           ]
         }
       ],
@@ -96,7 +96,7 @@
           "slots": [
             {
               "name": "position",
-              "type": "AMAZON.Ordinal",
+              "type": "AMAZON.SearchQuery",
               "confirmationRequired": false,
               "elicitationRequired": true,
               "prompts": {
@@ -113,7 +113,7 @@
         "variations": [
           {
             "type": "PlainText",
-            "value": "Tell me what position"
+            "value": "Tell me what course"
           }
         ]
       }

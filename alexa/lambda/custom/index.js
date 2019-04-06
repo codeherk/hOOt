@@ -19,6 +19,7 @@ const axios = require('axios');
 const { Course, Assignment } = require('./canvas');
 //Helper Function for calling the Cognito /oauth2/userInfo to get user info using the accesstoken
 const https = require('https');
+const ld = require('./levenDistance');
 //const { access_token } = require('./config'); // create config.js in your code
 
 //var access_token = '';
@@ -140,10 +141,6 @@ const coursesToString = function (courses) {
 const courseGradesToString = function(courses) {
   var letterGrade = null, score = null, courseName = null;
   var speechText = '';
-<<<<<<< HEAD
-=======
-
->>>>>>> codeherk
   for (var i in courses) {
     if (courses.hasOwnProperty(i)) {
       letterGrade = courses[i].enrollments.computed_current_grade;
@@ -454,16 +451,31 @@ const GetAssignmentIntentHandler = {
   },
   handle(handlerInput) {
     const currentIntent = handlerInput.requestEnvelope.request.intent;       
-    var position = currentIntent.slots.position.value;
+    var requestedCourse = currentIntent.slots.position.value;
+    //var index = position - 1;
 
-    var index = position - 1;
+    
+
     return new Promise(resolve => {
-      var courseIDs = mapCourses(classes,'id');
+      //compare requestedCourse with course array
+      var bestMatch = ld.FinalWord(requestedCourse, classes); // return course id
+      /**
+       * bestMatch.object.{.name, .id, .position, .match, .distance}
+       * bestMatch.status = {100 = good, 401 = null array}
+       */
+      
+      var courseID = bestMatch.object.id;
+
+      // get best match
+
+      // get assignments with best match given
+
+      //var courseIDs = mapCourses(classes,'id');
       classes = mapCourses(classes,'name');
-      getUpcomingAssignments(courseIDs[index], tasks => {
+      getUpcomingAssignments(courseID, tasks => {
         var list = formatAssignments(tasks);
         var output = (list === undefined || list.length == 0) ? 'there are no upcoming assignments' : list[0];
-        output = `For ${classes[index]}, ${output}`;
+        output = `For ${bestMatch.object.name}, ${output}`;
         // var output;
         // if(tasks.length == 0){
         //   output = 'March 25th, 2019, 11:59pm';
@@ -472,7 +484,7 @@ const GetAssignmentIntentHandler = {
         // }
         resolve(handlerInput.responseBuilder
             .speak(output)
-            .withSimpleCard(classes[index], output)
+            .withSimpleCard(bestMatch.object.name, output)
             .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
             .getResponse()
         )
