@@ -313,12 +313,14 @@ const courseGradesToString = function(courses) {
 }
 
 /**
- * 
+ * Extract submission score, points possible, and assignment name.
+ * Calculate percentage score for submitted assignments.
  * @param {Assignment []} assignments 
+ * @returns {String} formatted string of percentage scores for submitted assignments.
  */
 const submissionScoresToString = function(assignments) {
   var assignmentName = '', submissionScore = '', pointsPossible = '';
-  var scores = '';
+  var scoresString = '';
 
   for (var i in assignments) {
     if (assignments.hasOwnProperty(i)) {
@@ -328,11 +330,11 @@ const submissionScoresToString = function(assignments) {
       var percent;
       if (submissionScore != null) {
         percent = (submissionScore / pointsPossible) * 100;
-        scores += 'Your score for ' + assignmentName + ' is ' + percent + ' percent. ';
+        scoresString += 'Your score for ' + assignmentName + ' is ' + percent + ' percent. ';
       }
     }
   }
-  return 'Your scores are as follows: ' + scores;
+  return 'Your scores are as follows: ' + scoresString;
 }
 
 /**
@@ -429,9 +431,11 @@ getTACourses(courses => {
 
 getCourses(courses => {
   var courseIDs = mapCourses(courses,'id');
-
-  getAssignments(courseIDs[5], true, tasks => {
-    log(submissionScoresToString(tasks));
-  });
-
+  //receive grades for ALL submitted assignments in ALL registered courses.
+  for (var i = 0; i < courseIDs.length; i++) {
+    getAssignments(courseIDs[i], true, tasks => {
+      log(submissionScoresToString(tasks));
+      log('\n');
+    });
+  }
 });
