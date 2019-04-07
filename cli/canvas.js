@@ -47,6 +47,7 @@ function Assignment(obj) {
     this.description = obj.description ? h2p(obj.description).replace(/\r?\n|\r/g, " ") : null;
     this.due = obj.due_at ? moment(obj.due_at).format('LLL') : null; // ternary operator moment().format('MMMM Do YYYY, h:mm:ss a');
     this.points_possible = obj.points_possible;
+    this.submission = obj.submission;
 }
 
 /**

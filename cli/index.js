@@ -20,10 +20,9 @@
  * @author Brendan Connelly
  */
 
-
-// install packages
+ // install packages
 const axios = require('axios');
-const { Course, Assignment, ascii_art } = require('./canvas');
+const { Course, Assignment, Announcement, ascii_art } = require('./canvas');
 const { access_token } = require('./config');
 
 //var access_token = "ACCESS TOKEN GOES HERE" // NEVER, EVER PUSH YOUR ACCESS TOKEN UP TO GITHUB
@@ -32,8 +31,13 @@ const { access_token } = require('./config');
 var url = `https://templeu.instructure.com/api/v1/`;
 // URL parameters for a courses request.
 // Filters HTTP request results to provide only actively enrolled courses.
-var courseURL = 'courses?enrollment_state=active&enrollment_type=student&include[]=total_scores';
-var TA_URL = 'courses?enrollment_state=active&enrollment_type=ta';
+var courseURL = 'courses?enrollment_state=active';
+
+var announcementsURL = 'announcements?'
+
+var studentURL = '&enrollment_type=student';
+var TA_URL = '&enrollment_type=ta';
+var scoreURL = '&include[]=total_scores';
 
 /**
  * For the addition of header options including access token to HTTP request
@@ -46,9 +50,9 @@ const headerOptions = {
 
 var ignoreCourses = ['CIS Student Community Fall 2018', 'TU Alliance for Minority Participation (AMP) Program', 'Computer Science, Math, and Physics (CMP) Students'];
 
-/*******************************************************************************/
-/**************************** FUNCTION DECLARATIONS ****************************/
-/*******************************************************************************/
+/********************************************************************************************/
+/*********************************** FUNCTION DECLARATIONS **********************************/
+/********************************************************************************************/
 const cyan = "\x1b[36m";
 const red = "\x1b[31m";
 const white = "\x1b[37m";
@@ -68,11 +72,33 @@ const log = function (){
 /**
  * Makes an HTTP GET request to Canvas LMS API.
  * Creates Course objects by parsing received JSON response.
- * Passes array of Course objects to callback function.
+ * Passes array of Course objects to callback function, filtering out various "garbage" courses.
  * @param {function} callback 
  */
 const getCourses = function (callback) {
-  return axios.get(url + courseURL, headerOptions)
+  return axios.get(url + courseURL + studentURL + scoreURL, headerOptions)
+  .then(response => {
+    //log(response) //debug
+    var courses = [];
+    for(let i = 0; i < response.data.length; i++){
+      courses.push(new Course(response.data[i]));
+    }
+
+    courses = courses.filter((course) => !ignoreCourses.includes(course.name));
+    //log(courses) //debug
+    callback(courses);
+  });
+}
+
+/**
+ * Makes an HTTP GET request to Canvas LMS API.
+ * Specifies that request should return courses in which user is a TA
+ * Creates Course objects by parsing received JSON response.
+ * Passes array of Course objecst to callback function, filtering out various "garbage" courses
+ * @param {function} callback 
+ */
+const getTACourses = function (callback) {
+  return axios.get(url + courseURL + TA_URL, headerOptions)
   .then(response => {
     //log(response) //debug
     var courses = [];
@@ -80,6 +106,7 @@ const getCourses = function (callback) {
       courses.push(new Course(response.data[i]));
     }
     //log(courses) //debug
+    courses = courses.filter((course) => !ignoreCourses.includes(course.name));
     callback(courses);
   });
 }
@@ -90,14 +117,14 @@ const getCourses = function (callback) {
  * @param {Course []} courses 
  * @param {String} by 
  */
-const mapCourses = function (courses, by) {
-  courses = courses.filter((course) => !ignoreCourses.includes(course.name));
+const mapCourses = function (courses, by = null) {
+  // courses = courses.filter((course) => !ignoreCourses.includes(course.name));
   if(by == 'id'){
     return courses.map(course => course.id);
   }else if(by == 'name'){
     return courses.map(course => course.name);
   }
-  return list;
+  return courses
 }
 
 /**
@@ -119,8 +146,11 @@ const coursesToString = function(courses){
   for (i = 0; i < titles.length - 1; i++){
     list += titles[i] + ', ';
   }
-
-  list += 'and ' + titles[i] + '.'; // and <last course name>. 
+  if(i == 0){
+    list += titles[i] + '.';
+  }else{
+    list += 'and ' + titles[i] + '.'; // and <last course name>. 
+  }
   return list;
 }
 
@@ -128,14 +158,18 @@ const coursesToString = function(courses){
  * Makes an HTTP GET request to Canvas LMS API.
  * Receives a response from API with all of a user's assignments for a course with the given course ID.
  * Creates an array of Assignment objects based on API's response.
- * Calls callback function, passing in Assignment array as param.
+ * Passes in array of Assignment objects to callback function.
  * @param {String} courseID 
  * @param {function} callback 
  */
-const getAssignments = function (courseID,callback) {
+const getAssignments = function (courseID, includeSubmissions, callback) {
   var request = url + 'courses/' + courseID + '/assignments';
+
+  if (includeSubmissions) {
+    request += '?include[]=submission';    
+  }
+
   //log(request)
-  //https://templeu.instructure.com/api/v1/courses/99570000000054796/assignments?access_token=9957~ZSG3nWPwk5CsmpSjxHO8NXLaJqPV57Sviljh19SP0aXzZED2yTDmCrES3dX9wocW
   return axios.get(request, headerOptions)
     .then(response => {
       var data = response.data;
@@ -148,6 +182,56 @@ const getAssignments = function (courseID,callback) {
       //log(assignments);
       callback(assignments);
     });
+}
+
+/**
+ * Loops through array of course IDs, adding courses to the request URL.
+ * Makes an HTTP GET Request to Canvas LMS API.
+ * Receives a response from API with all anouncements from courses specified in the CourseIDS param.
+ * Creates an array of Announcement objects based on API's response.
+ * Calls callback function, passiing in Announcement array as param.
+ * @param {String []} courseIDS 
+ * @param {function} callback 
+ */
+const getAnnouncements = function (courseIDS,callback) {
+  var temp = announcementsURL;
+  for (var i = 0; i < courseIDS.length; i++) {
+    if (i == (courseIDS.length-1)) {
+      temp = temp + 'context_codes[]=course_' + courseIDS[i];
+    } else {
+      temp = temp + 'context_codes[]=course_' + courseIDS[i]+'&';
+    }
+  }
+
+  return axios.get(url + temp, headerOptions)
+    .then(response => {
+      //log(response) //debug
+      var announcements = [];
+      for (let i = 0; i < response.data.length; i++) {
+        announcements.push(new Announcement(response.data[i]));
+      } 
+
+      for (let i = 0; i < announcements.length; i++){
+        var msg = announcements[i].message;
+        var new_msg = "";
+        var b = 1;
+        for (let j = 0; j < msg.length; j++) {
+          if (msg[j] == '<') {
+            b = 1;
+            continue;
+          }
+          if (msg[j] == '>') {
+            b = 0;
+            continue;
+          }
+          if (b == 0) {
+            new_msg = new_msg + msg[j];
+          }
+        }
+        announcements[i].message = new_msg;
+      }
+      callback(announcements);
+  });
 }
 
 /**
@@ -175,6 +259,7 @@ const getUpcomingAssignments = function(courseID,callback){
     });
 }
 
+
 /**
  * Create array of Assignments.
  * Add assignments from task param. into new array adding due-date details.
@@ -201,26 +286,62 @@ const formatAssignments = function (tasks){
  * Print formatted list of course names, scores, and letter grades.
  * @param {Course []} courses 
  */
-const getCourseScores = function(courses) {
-  for (var key in courses) {
-    if (courses.hasOwnProperty(key)) {
-      var currLetterGrade = courses[key].enrollments.computed_current_grade;
-      var currScore = courses[key].enrollments.computed_current_score;
-      var courseName = courses[key].name;
+const courseGradesToString = function(courses) {
+  var letterGrade = null, score = null, courseName = null;
+  var speechText = '';
+  for (var i in courses) {
+    if (courses.hasOwnProperty(i)) {
+      letterGrade = courses[i].enrollments.computed_current_grade;
+      score = courses[i].enrollments.computed_current_score;
+      courseName = courses[i].name;
       
-      if (!ignoreCourses.includes(courseName)) {
-        if (currScore == undefined || currScore == null) {
-          log(courseName + " has no current score.");
-        } else if (currLetterGrade == undefined || currLetterGrade == null) {
-          log(courseName + ": " + currScore);
-        } else {
-          log(courseName + ": " + currScore + "(" + currLetterGrade + ")");
-        }
+      if (score == undefined || score == null) {
+        speechText += `${courseName} has no current score`;
+      } else if (letterGrade == undefined || letterGrade == null) {
+        speechText += `${courseName}, ${score}`;
+      } else {
+        speechText += `${courseName}, ${score}, which is an ${letterGrade}`;
+      }
+      if(i == courses.length - 2){
+        speechText += ', and ';
+      }else{
+        speechText += '. '
       }
     }
   }
+  return speechText + "Please be mindful that these scores are unweighted.";
 }
 
+/**
+ * 
+ * @param {Assignment []} assignments 
+ */
+const submissionScoresToString = function(assignments) {
+  var assignmentName = '', submissionScore = '', pointsPossible = '';
+  var scores = '';
+
+  for (var i in assignments) {
+    if (assignments.hasOwnProperty(i)) {
+      assignmentName = assignments[i].name;
+      submissionScore = assignments[i].submission.score;
+      pointsPossible = assignments[i].points_possible;
+      var percent;
+      if (submissionScore != null) {
+        percent = (submissionScore / pointsPossible) * 100;
+        scores += 'Your score for ' + assignmentName + ' is ' + percent + ' percent. ';
+      }
+    }
+  }
+  return 'Your scores are as follows: ' + scores;
+}
+
+/**
+ * Makes an HTTP GET request to Canvas LMS API.
+ * Receives response from API about exported courses and course content.
+ * Calls callback function, passing in response data.
+ * @param {String} courseID 
+ * @param {function} callback 
+ */
 const getContentExports = function (courseID,callback) {
   var result = url + 'courses/' + courseID + '/content_exports';
   return axios.get(result, headerOptions)
@@ -230,6 +351,13 @@ const getContentExports = function (courseID,callback) {
     });
   }
 
+  /**
+   * Makes an HTTP GET request to Canvas LMS API.
+   * Receives response from API containing list of all students enrolled in a course with the given Course ID.
+   * Calls callback function, passing in response as param. 
+   * @param {String} courseID 
+   * @param {function} callback 
+   */
   const getUsers = function (courseID,callback) {
     var result = url + 'courses/' + courseID + '/users' + '?enrollment_type[]=student';
 
@@ -239,58 +367,71 @@ const getContentExports = function (courseID,callback) {
       log(response.headers)
       //callback(response);
     });
-  }
+}
 
-/*******************************************************************************/
-/************************* END OF FUNCTION DECLARATIONS ************************/
-/*******************************************************************************/
+/********************************************************************************************/
+/******************************* END OF FUNCTION DECLARATIONS *******************************/
+/********************************************************************************************/
 
+log(ascii_art);
 
-log(ascii_art, cyan);
- 
-getCourses(courses => {
-  //log(courses);
-
-  getCourseScores(courses);
+/*getCourses(courses => {
 
   var speechText = '\n\nYou are currently enrolled in: ' + coursesToString(courses);
   log(speechText);
+  log("Your current grades are as follows: " + courseGradesToString(courses));
 
   var courseIDs = mapCourses(courses,'id');
   //log(courseIDs);
-
+  
   getUpcomingAssignments(courseIDs[0], tasks => {
-    //log(tasks[0].name)
-    //log(tasks[0].description);
     log(formatAssignments(tasks))
   }).catch(error => {
     log("Could not get assignments. " + error, red);
   });
+  //get annoucements
+  getAnnouncements(courseIDs, announcements => {
+    for( let i=0;i<announcements.length;i++){
+      log((announcements[i].message));
+    }
+  }).catch(error => {
+    log("Could not get announcements. " + error, red);
+  });
+
 }).catch(error => {
   log("Could not get courses. " + error, red);
 });
 
-// getTACourses(courses => {
-//   //var courseIDs = formatCourses(courses,'id');
-//   var courseIDs = mapCourses(courses,'id');
-//   var speechText = 'You are currently teaching: ' + coursesToString(courses);
-//   log(speechText);
+getTACourses(courses => {
+  //var courseIDs = formatCourses(courses,'id');
+  var courseIDs = mapCourses(courses,'id');
+  var speechText = 'You are currently teaching: ' + coursesToString(courses);
+  log(speechText);
   
-//   // getContentExports(courseIDs[0], res => {
-//   //   log(res);
-//   getUsers(courseIDs[0], res => {
-//     //log(res);
-//   })
+  // getContentExports(courseIDs[0], res => {
+  //   log(res);
+  // getUsers(courseIDs[0], res => {
+  //   log(res);
+  // })
 
-//   // get all assignments and tell total
+  // get all assignments and tell total
 
-//   // getAssignments(courseIDs[0], tasks => {
-//   //   //log(tasks[0].name)
-//   //   //log(tasks[0].description);
-//   //   log(formatAssignments(tasks))
-//   // }).catch(error => {
-//   //   log("Could not get assignments. " + error, red);
-//   // });
-// }).catch(error => {
-//   log("Could not get courses. " + error, red);
-// });
+  // getAssignments(courseIDs[0], tasks => {
+  //   //log(tasks[0].name)
+  //   //log(tasks[0].description);
+  //   log(formatAssignments(tasks))
+  // }).catch(error => {
+  //   log("Could not get assignments. " + error, red);
+  // });
+}).catch(error => {
+  log("Could not get courses. " + error, red);
+});*/
+
+getCourses(courses => {
+  var courseIDs = mapCourses(courses,'id');
+
+  getAssignments(courseIDs[5], true, tasks => {
+    log(submissionScoresToString(tasks));
+  });
+
+});
