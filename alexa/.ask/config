@@ -10,7 +10,7 @@
         },
         "interactionModel": {
           "en-US": {
-            "eTag": "15b9a62967da570591be03a8f42915d7"
+            "eTag": "81bf00681dbf596eea3572d159a6168f"
           }
         },
         "lambda": [
@@ -23,7 +23,36 @@
             "codeUri": "lambda/custom",
             "functionName": "getCourses",
             "handler": "index.handler",
-            "revisionId": "4c083c42-61e2-4d32-adc6-04e4d059c6e0",
+            "revisionId": "9b86daba-f138-43b8-aadc-439c148166af",
+            "runtime": "nodejs8.10"
+          }
+        ]
+      }
+    },
+    "tnowlin": {
+      "skill_id": "amzn1.ask.skill.b82613cd-3e68-449c-898b-2bc51c766e72",
+      "was_cloned": false,
+      "merge": {},
+      "resources": {
+        "manifest": {
+          "eTag": "88afa1d9823998cbb7bc39e9c01265e4"
+        },
+        "interactionModel": {
+          "en-US": {
+            "eTag": "61e6b49a0fba12a8c71dac7c7ef9abdb"
+          }
+        },
+        "lambda": [
+          {
+            "alexaUsage": [
+              "custom/default"
+            ],
+            "arn": "arn:aws:lambda:us-east-1:696734041478:function:getCourses",
+            "awsRegion": "us-east-1",
+            "codeUri": "lambda/custom",
+            "functionName": "getCourses",
+            "handler": "index.handler",
+            "revisionId": "d6b4e4d9-fe92-4d91-b501-727060edbe13",
             "runtime": "nodejs8.10"
           }
         ]
