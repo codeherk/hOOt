@@ -330,7 +330,7 @@ const submissionScoresToString = function(assignments) {
       var percent;
       if (submissionScore != null) {
         percent = (submissionScore / pointsPossible) * 100;
-        scoresString += 'Your score for ' + assignmentName + ' is ' + percent + ' percent. ';
+        scoresString += 'Your score for ' `${assignmentName}`, ' is ' ,`${percent}`, ' percent. ';
       }
     }
   }
