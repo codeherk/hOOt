@@ -1,7 +1,7 @@
 {
   "interactionModel": {
     "languageModel": {
-      "invocationName": "hoot for canvas",
+      "invocationName": "temple canvas",
       "intents": [
         {
           "name": "AMAZON.CancelIntent",
@@ -43,11 +43,21 @@
           ]
         },
         {
+          "name": "TACoursesIntent",
+          "samples": [
+            "courses",
+            "what classes am I teaching",
+            "what am I teaching currently",
+            "what classes do I teach",
+            "what courses do I teach"
+          ]
+        },
+        {
           "name": "AssignmentIntent",
           "slots": [
             {
-              "name": "Position",
-              "type": "AMAZON.Ordinal",
+              "name": "position",
+              "type": "AMAZON.SearchQuery",
               "samples": [
                 "{position}",
                 "index {position}"
@@ -62,6 +72,17 @@
             "what do I need to do",
             "what do I need to do for my {position} class"
           ]
+        },
+        {
+          "name": "AnnouncementIntent",
+          "samples": [
+            "announcements",
+            "what are my announcements",
+            "get announcements",
+            "get my announcements",
+            "do i have any announcements",
+            "what do I need to do for my class"
+          ]
         }
       ],
       "types": []
@@ -75,7 +96,7 @@
           "slots": [
             {
               "name": "position",
-              "type": "AMAZON.Ordinal",
+              "type": "AMAZON.SearchQuery",
               "confirmationRequired": false,
               "elicitationRequired": true,
               "prompts": {
@@ -92,7 +113,7 @@
         "variations": [
           {
             "type": "PlainText",
-            "value": "Tell me what position"
+            "value": "Tell me what course"
           }
         ]
       }

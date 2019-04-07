@@ -32,9 +32,7 @@ var url = `https://templeu.instructure.com/api/v1/`;
 // URL parameters for a courses request.
 // Filters HTTP request results to provide only actively enrolled courses.
 var courseURL = 'courses?enrollment_state=active';
-
 var announcementsURL = 'announcements?'
-
 var studentURL = '&enrollment_type=student';
 var TA_URL = '&enrollment_type=ta';
 var scoreURL = '&include[]=total_scores';
@@ -83,9 +81,22 @@ const getCourses = function (callback) {
     for(let i = 0; i < response.data.length; i++){
       courses.push(new Course(response.data[i]));
     }
-
     courses = courses.filter((course) => !ignoreCourses.includes(course.name));
     //log(courses) //debug
+    callback(courses);
+  });
+}
+
+const getTACourses = function (callback) {
+  return axios.get(url + courseURL + TA_URL, headerOptions)
+  .then(response => {
+    //log(response) //debug
+    var courses = [];
+    for(let i = 0; i < response.data.length; i++){
+      courses.push(new Course(response.data[i]));
+    }
+    //log(courses) //debug
+    courses = courses.filter((course) => !ignoreCourses.includes(course.name));
     callback(courses);
   });
 }
@@ -146,9 +157,9 @@ const coursesToString = function(courses){
   for (i = 0; i < titles.length - 1; i++){
     list += titles[i] + ', ';
   }
-  if(i == 0){
+  if (i == 0) {
     list += titles[i] + '.';
-  }else{
+  } else {
     list += 'and ' + titles[i] + '.'; // and <last course name>. 
   }
   return list;
@@ -194,43 +205,42 @@ const getAssignments = function (courseID, includeSubmissions, callback) {
  * @param {function} callback 
  */
 const getAnnouncements = function (courseIDS,callback) {
-  var temp = announcementsURL;
-  for (var i = 0; i < courseIDS.length; i++) {
-    if (i == (courseIDS.length-1)) {
+  var temp= announcementsURL;
+  for (var i = 0; i < courseIDS.length; i++){
+    if (i==(courseIDS.length-1)) {
       temp = temp + 'context_codes[]=course_' + courseIDS[i];
     } else {
       temp = temp + 'context_codes[]=course_' + courseIDS[i]+'&';
     }
   }
-
   return axios.get(url + temp, headerOptions)
-    .then(response => {
-      //log(response) //debug
-      var announcements = [];
-      for (let i = 0; i < response.data.length; i++) {
-        announcements.push(new Announcement(response.data[i]));
-      } 
+  .then(response => {
+    //log(response) //debug
+    var announcements = [];
+    for (let i = 0; i < response.data.length; i++){
+      announcements.push(new Announcement(response.data[i]));
+    }
 
-      for (let i = 0; i < announcements.length; i++){
-        var msg = announcements[i].message;
-        var new_msg = "";
-        var b = 1;
-        for (let j = 0; j < msg.length; j++) {
-          if (msg[j] == '<') {
-            b = 1;
-            continue;
-          }
-          if (msg[j] == '>') {
-            b = 0;
-            continue;
-          }
-          if (b == 0) {
-            new_msg = new_msg + msg[j];
-          }
+    for(let i = 0; i < announcements.length; i++){
+      var msg = announcements[i].message;
+      var new_msg = "";
+      var b = 1
+      for (let j = 0; j < msg.length; j++) {
+        if (msg[j] == '<') {
+          b = 1;
+          continue;
         }
-        announcements[i].message = new_msg;
+        if (msg[j] == '>') {
+          b = 0;
+          continue;
+        }
+        if (b == 0) {
+          new_msg = new_msg + msg[j];
+        }
       }
-      callback(announcements);
+      announcements[i].message = new_msg;
+    }
+    callback(announcements);
   });
 }
 
@@ -258,7 +268,6 @@ const getUpcomingAssignments = function(courseID,callback){
       callback(assignments);
     });
 }
-
 
 /**
  * Create array of Assignments.
@@ -404,6 +413,13 @@ log(ascii_art);
   log("Could not get courses. " + error, red);
 });
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+
+=======
+>>>>>>> codeherk
+>>>>>>> c65114be02680000bbf2ea7bc09903288bd5561d
 getTACourses(courses => {
   //var courseIDs = formatCourses(courses,'id');
   var courseIDs = mapCourses(courses,'id');
@@ -427,6 +443,7 @@ getTACourses(courses => {
   // });
 }).catch(error => {
   log("Could not get courses. " + error, red);
+<<<<<<< HEAD
 });*/
 
 getCourses(courses => {
