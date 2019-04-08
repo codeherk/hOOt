@@ -254,6 +254,7 @@ const LaunchRequestHandler = {
   },
   handle(handlerInput) {
 <<<<<<< HEAD
+<<<<<<< HEAD
     if (handlerInput.requestEnvelope.context.System.user.accessToken === undefined) {
       return handlerInput.responseBuilder
         .speak("to start using this skill, please use the companion app to authenticate")
@@ -301,6 +302,8 @@ const LaunchRequestHandler = {
       }
     },
 =======
+=======
+>>>>>>> a72e95110afe5b265dce4530fa4b967b0bc2d07b
     const speechText = 'Welcome to Hoot for Canvas, how may I help you?';
 
     return handlerInput.responseBuilder

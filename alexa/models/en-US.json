@@ -1,6 +1,7 @@
 {
   "interactionModel": {
 <<<<<<< HEAD
+<<<<<<< HEAD
     "languageModel": {
       "invocationName": "temple canvas",
       "intents": [
@@ -196,6 +197,88 @@
       },
       "prompts": [
           {
+=======
+      "languageModel": {
+          "invocationName": "hoot for canvas",
+          "intents": [
+              {
+                  "name": "AMAZON.CancelIntent",
+                  "samples": []
+              },
+              {
+                  "name": "AMAZON.HelpIntent",
+                  "samples": []
+              },
+              {
+                  "name": "AMAZON.StopIntent",
+                  "samples": []
+              },
+              {
+                  "name": "HelloWorldIntent",
+                  "slots": [],
+                  "samples": [
+                      "hello"
+                  ]
+              },
+              {
+                  "name": "CoursesIntent",
+                  "slots": [],
+                  "samples": [
+                      "courses",
+                      "what classes am I taking",
+                      "what courses am I enrolled in",
+                      "what classes do I have",
+                      "what courses do I have"
+                  ]
+              },
+              {
+                  "name": "AssignmentIntent",
+                  "slots": [
+                      {
+                          "name": "Position",
+                          "type": "AMAZON.Ordinal",
+                          "samples": [
+                              "{Position}",
+                              "index {Position}"
+                          ]
+                      }
+                  ],
+                  "samples": [
+                      "assignments",
+                      "what assignments do I have coming up"
+                  ]
+              },
+              {
+                  "name": "AMAZON.NavigateHomeIntent",
+                  "samples": []
+              }
+          ],
+          "types": []
+      },
+      "dialog": {
+          "intents": [
+              {
+                  "name": "AssignmentIntent",
+                  "confirmationRequired": false,
+                  "prompts": {},
+                  "slots": [
+                      {
+                          "name": "Position",
+                          "type": "AMAZON.Ordinal",
+                          "confirmationRequired": false,
+                          "elicitationRequired": true,
+                          "prompts": {
+                              "elicitation": "Elicit.Intent-AssignmentIntent.IntentSlot-Position"
+                          }
+                      }
+                  ]
+              }
+          ],
+          "delegationStrategy": "SKILL_RESPONSE"
+      },
+      "prompts": [
+          {
+>>>>>>> a72e95110afe5b265dce4530fa4b967b0bc2d07b
               "id": "Elicit.Intent-AssignmentIntent.IntentSlot-Position",
               "variations": [
                   {
@@ -203,7 +286,10 @@
                       "value": "Tell me what position"
                   }
               ]
+<<<<<<< HEAD
 >>>>>>> First commit
+=======
+>>>>>>> a72e95110afe5b265dce4530fa4b967b0bc2d07b
           }
       ]
   }
