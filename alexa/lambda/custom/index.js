@@ -16,7 +16,7 @@
 
 const Alexa = require('ask-sdk-core');
 const axios = require('axios');
-const { Course, Assignment, Annoucement } = require('./canvas');
+const { Course, Assignment, Announcement } = require('./canvas');
 //Helper Function for calling the Cognito /oauth2/userInfo to get user info using the accesstoken
 const https = require('https');
 const ld = require('./levenshtein');
@@ -100,7 +100,7 @@ const getTACourses = function (callback) {
 //function to get recent annoucnments
 //*****************************************
 const getAnnouncements = function (courseIDS,callback) {
-  var temp= announcementsURL;
+  var temp= announcementURL;
   for(var i=0;i<courseIDS.length;i++){
     if (i==(courseIDS.length-1)){
       temp = temp + 'context_codes[]=course_' + courseIDS[i];
@@ -504,12 +504,12 @@ const AnnouncementIntentHandler = {
         var speechText = 'Here are your announcements: ' + (announcements);
         resolve(handlerInput.responseBuilder
           .speak(speechText + question)
-          .withStandardCard("Enrolled Courses", speechText, smallImgUrl, largeImgUrl)
+          .withStandardCard("Here are your announcements", speechText, smallImgUrl, largeImgUrl)
           .withShouldEndSession(false)
           .getResponse()          
         );
       }).catch(error => {
-        resolve(speakError(handlerInput,'I am having a little trouble getting your current courses. Try again later.', error));
+        resolve(speakError(handlerInput,'I am having a little trouble getting your current announcements. Try again later.', error));
       });
     });
   }

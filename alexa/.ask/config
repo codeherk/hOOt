@@ -52,7 +52,7 @@
             "codeUri": "lambda/custom",
             "functionName": "getCourses",
             "handler": "index.handler",
-            "revisionId": "d6b4e4d9-fe92-4d91-b501-727060edbe13",
+            "revisionId": "20223e1e-19cd-4489-a3a6-02e1b2a7c0e7",
             "runtime": "nodejs8.10"
           }
         ]
