@@ -97,7 +97,7 @@ const getTACourses = function (callback) {
 }
 
 
-//function to get recent annoucnments
+//function to get recent announcements
 //*****************************************
 const getAnnouncements = function (courseIDS,callback) {
   var temp= announcementURL;
@@ -181,6 +181,24 @@ const coursesToString = function (courses) {
   }else{
     list += 'and ' + titles[i] + '.'; // and <last course name>. 
   }
+  return list;
+}
+
+const announcementsToString = function (announcements) {
+  var list = ''; // set list as empty string
+  var i;
+  // loop thru courses, and format it to string that will be spoken
+  for (i = 0; i < announcements.length-1; i++) {
+    if(i<announcements.length - 2){
+    list += announcements[i].message + 'Next announcement: ';
+  }
+    else{
+
+      list += announcements[i].message;
+
+    }
+  }
+
   return list;
 }
 
@@ -499,21 +517,28 @@ const AnnouncementIntentHandler = {
   },
   handle(handlerInput) {
     return new Promise(resolve => {
-      getCourses(announcements => {
-        var question = ' Anything else I can help you with?';
-        var speechText = 'Here are your announcements: ' + (announcements);
-        resolve(handlerInput.responseBuilder
-          .speak(speechText + question)
-          .withStandardCard("Here are your announcements", speechText, smallImgUrl, largeImgUrl)
-          .withShouldEndSession(false)
-          .getResponse()          
-        );
-      }).catch(error => {
+      getCourses(courses => {
+        var courseIDs = mapCourses(courses,'id');
+        getAnnouncements(courseIDs, announcements => {
+          var question = ' Anything else I can help you with?';
+          var announcements=announcementsToString(announcements);
+          var speechText = 'Here are your announcements: ' + (announcements);
+          resolve(handlerInput.responseBuilder
+            .speak(speechText + question)
+            .withStandardCard("Here are your announcements", speechText, smallImgUrl, largeImgUrl)
+            .withShouldEndSession(false)
+            .getResponse()          
+          )
+        }
+        )
+      })
+      .catch(error => {
         resolve(speakError(handlerInput,'I am having a little trouble getting your current announcements. Try again later.', error));
       });
     });
   }
-};
+}
+
 
 const GetAssignmentIntentHandler = {
   canHandle(handlerInput) {
