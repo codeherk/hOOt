@@ -24,7 +24,7 @@
 const axios = require('axios');
 const { Course, Assignment, Announcement, ascii_art } = require('./canvas');
 const { access_token } = require('./config');
-const ls = require('./levenshtein');
+const ld = require('./levenshtein');
 
 //var access_token = "ACCESS TOKEN GOES HERE" // NEVER, EVER PUSH YOUR ACCESS TOKEN UP TO GITHUB
 
@@ -467,6 +467,10 @@ getTACourses(courses => {
 //Test begin
 //##############################################################################################
 
+test_phrase = ['The Good','good Life','Common Good',
+                'Modern Algebra','Physics','Lab',
+                'Physics Lab','Projects'];
+
 getCourses(courses => {
 
   var courseIDs = mapCourses(courses,'id');
@@ -480,7 +484,19 @@ getCourses(courses => {
 
   }//end
 
-  log(enrolled);
+  //log(enrolled);
+  for (let i = 0; i<test_phrase.length; i++) {
+
+    log('You are asking for: ' + '\"' + test_phrase[i] + '\"' + '\n');
+    log('Results:\n');
+    var temp = ld.FinalWord(test_phrase[i], enrolled);
+    log('name: ' + temp.object.name 
+        + '\nleven distance: ' + temp.object.distance
+        + '\nmatch: ' + temp.object.match);
+    log('\nEnd Result-------------------------------');
+
+  }//end for
+
 
 });
 
