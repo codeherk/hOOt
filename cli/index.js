@@ -24,6 +24,7 @@
 const axios = require('axios');
 const { Course, Assignment, Announcement, ascii_art } = require('./canvas');
 const { access_token } = require('./config');
+const ls = require('./levenshtein');
 
 //var access_token = "ACCESS TOKEN GOES HERE" // NEVER, EVER PUSH YOUR ACCESS TOKEN UP TO GITHUB
 
@@ -87,19 +88,24 @@ const getCourses = function (callback) {
   });
 }
 
-const getTACourses = function (callback) {
-  return axios.get(url + courseURL + TA_URL, headerOptions)
-  .then(response => {
-    //log(response) //debug
-    var courses = [];
-    for(let i = 0; i < response.data.length; i++){
-      courses.push(new Course(response.data[i]));
-    }
-    //log(courses) //debug
-    courses = courses.filter((course) => !ignoreCourses.includes(course.name));
-    callback(courses);
-  });
-}
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//Uncomment later
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// const getTACourses = function (callback) {
+//   return axios.get(url + courseURL + TA_URL, headerOptions)
+//   .then(response => {
+//     //log(response) //debug
+//     var courses = [];
+//     for(let i = 0; i < response.data.length; i++){
+//       courses.push(new Course(response.data[i]));
+//     }
+//     //log(courses) //debug
+//     courses = courses.filter((course) => !ignoreCourses.includes(course.name));
+//     callback(courses);
+//   });
+// }
 
 /**
  * Makes an HTTP GET request to Canvas LMS API.
@@ -384,7 +390,7 @@ const getContentExports = function (courseID,callback) {
 /******************************* END OF FUNCTION DECLARATIONS *******************************/
 /********************************************************************************************/
 
-log(ascii_art);
+//log(ascii_art);
 
 /*getCourses(courses => {
 
@@ -446,13 +452,36 @@ getTACourses(courses => {
 <<<<<<< HEAD
 });*/
 
+// getCourses(courses => {
+//   var courseIDs = mapCourses(courses,'id');
+//   //receive grades for ALL submitted assignments in ALL registered courses.
+//   for (var i = 0; i < courseIDs.length; i++) {
+//     getAssignments(courseIDs[i], true, tasks => {
+//       log(submissionScoresToString(tasks));
+//       log('\n');
+//     });
+//   }
+// });
+
+//##############################################################################################
+//Test begin
+//##############################################################################################
+
 getCourses(courses => {
+
   var courseIDs = mapCourses(courses,'id');
-  //receive grades for ALL submitted assignments in ALL registered courses.
-  for (var i = 0; i < courseIDs.length; i++) {
-    getAssignments(courseIDs[i], true, tasks => {
-      log(submissionScoresToString(tasks));
-      log('\n');
-    });
-  }
+  var courseNames = mapCourses(courses, 'name');
+
+  var enrolled = [];
+
+  for (let i = 0; i<courses.length; i++) {
+    
+    enrolled.push(new Course(courses[i]));
+
+  }//end
+
+  log(enrolled);
+
 });
+
+
