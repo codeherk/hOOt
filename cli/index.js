@@ -471,33 +471,39 @@ test_phrase = ['The Good','good Life','Common Good',
                 'Modern Algebra','Physics','Lab',
                 'Physics Lab','Projects'];
 
-getCourses(courses => {
+const beginTest = () => {
 
-  var courseIDs = mapCourses(courses,'id');
-  var courseNames = mapCourses(courses, 'name');
+  getCourses(courses => {
 
-  var enrolled = [];
+    var courseIDs = mapCourses(courses,'id');
+    var courseNames = mapCourses(courses, 'name');
+  
+    var enrolled = [];
+  
+    for (let i = 0; i<courses.length; i++) {
+      
+      enrolled.push(new Course(courses[i]));
+  
+    }//end
+  
+    //log(enrolled);
+    for (let i = 0; i<test_phrase.length; i++) {
+  
+      log('You are asking for: ' + '\"' + test_phrase[i] + '\"' + '\n');
+      log('Results:\n');
+      var temp = ld.FinalWord(test_phrase[i], enrolled);
+      log('name: ' + temp.object.name 
+          + '\nleven distance: ' + temp.object.distance
+          + '\nmatch: ' + temp.object.match);
+      log('\nEnd Result-------------------------------');
+  
+    }//end for
+  
+  
+  });
 
-  for (let i = 0; i<courses.length; i++) {
-    
-    enrolled.push(new Course(courses[i]));
+}//end begin test
 
-  }//end
-
-  //log(enrolled);
-  for (let i = 0; i<test_phrase.length; i++) {
-
-    log('You are asking for: ' + '\"' + test_phrase[i] + '\"' + '\n');
-    log('Results:\n');
-    var temp = ld.FinalWord(test_phrase[i], enrolled);
-    log('name: ' + temp.object.name 
-        + '\nleven distance: ' + temp.object.distance
-        + '\nmatch: ' + temp.object.match);
-    log('\nEnd Result-------------------------------');
-
-  }//end for
-
-
-});
+//beginTest();
 
 
