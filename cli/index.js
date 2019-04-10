@@ -174,7 +174,8 @@ const getAssignments = function (courseID,callback) {
 
 //function to get recent annoucnments
 //*****************************************
-const getAnnouncements = function (courseIDS,callback) {
+const getAnnouncements = function (courses,callback) {
+  var courseIDS=mapCourses(courses,'id');
   var temp= announcementsURL;
   for(var i=0;i<courseIDS.length;i++){
     if (i==(courseIDS.length-1)){
@@ -185,6 +186,8 @@ const getAnnouncements = function (courseIDS,callback) {
   }
   return axios.get(url + temp, headerOptions)
   .then(response => {
+    var courseIDS=mapCourses(courses,'id');
+
     //log(response) //debug
     var announcements = [];
     for(let i = 0; i < response.data.length; i++){
@@ -212,6 +215,8 @@ const getAnnouncements = function (courseIDS,callback) {
       new_msg=new_msg.split("&amp;").join("and")
       new_msg=new_msg.split("*").join("")
       announcements[i].message=new_msg;
+      var cc=announcements[i].context_code;
+      announcements[i].course=courses[courseIDS.indexOf(parseInt(cc.substring(7,)))];
     }
     callback(announcements);
   });
@@ -335,10 +340,10 @@ getCourses(courses => {
   getUpcomingAssignments(courseIDs[0], tasks => {
     log(formatAssignments(tasks))
   }).catch(error => {
-    log("Could not get assignments. " + error, red);
+    log("Could not get assignments. " + error, redcd );
   });
   //get annoucements
-  getAnnouncements(courseIDs, announcements => {
+  getAnnouncements(courses, announcements => {
     for( let i=0;i<announcements.length;i++){
       log((announcements[i].message));
     }

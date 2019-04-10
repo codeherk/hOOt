@@ -99,8 +99,9 @@ const getTACourses = function (callback) {
 
 //function to get recent announcements
 //*****************************************
-const getAnnouncements = function (courseIDS,callback) {
+const getAnnouncements = function (courses,callback) {
   var temp= announcementURL;
+  var courseIDS=mapCourses(courses,'id');
   for(var i=0;i<courseIDS.length;i++){
     if (i==(courseIDS.length-1)){
       temp = temp + 'context_codes[]=course_' + courseIDS[i];
@@ -137,6 +138,9 @@ const getAnnouncements = function (courseIDS,callback) {
       new_msg=new_msg.split("&amp;").join("and")
       new_msg=new_msg.split("*").join("")
       announcements[i].message=new_msg;
+      var cc=announcements[i].context_code;
+      announcements[i].course=courses[courseIDS.indexOf(parseInt(cc.substring(7,)))];
+      
     }
     callback(announcements);
   });
@@ -188,17 +192,12 @@ const announcementsToString = function (announcements) {
   var list = ''; // set list as empty string
   var i;
   // loop thru courses, and format it to string that will be spoken
+  
   for (i = 0; i < announcements.length-1; i++) {
-    if(i<announcements.length - 2){
-    list += announcements[i].message + 'Next announcement: ';
+    if (announcements[i].message.length>2){
+    list += 'Announcement for your '+announcements[i].course.name+' class: '+announcements[i].message;
   }
-    else{
-
-      list += announcements[i].message;
-
-    }
-  }
-
+}
   return list;
 }
 
@@ -518,8 +517,7 @@ const AnnouncementIntentHandler = {
   handle(handlerInput) {
     return new Promise(resolve => {
       getCourses(courses => {
-        var courseIDs = mapCourses(courses,'id');
-        getAnnouncements(courseIDs, announcements => {
+        getAnnouncements(courses, announcements => {
           var question = ' Anything else I can help you with?';
           var announcements=announcementsToString(announcements);
           var speechText = 'Here are your announcements: ' + (announcements);
