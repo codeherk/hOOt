@@ -343,7 +343,7 @@ const submissionScoresToString = function(assignments) {
       }
     }
   }
-  return 'Your scores are as follows: ' + scoresString;
+  return 'Your submission scores are as follows: ' + scoresString;
 }
 
 /**

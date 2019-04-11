@@ -165,6 +165,31 @@ const courseGradesToString = function(courses) {
 }
 
 /**
+ * Extract submission score, points possible, and assignment name.
+ * Calculate percentage score for submitted assignments.
+ * @param {Assignment []} assignments 
+ * @returns {String} formatted string of percentage scores for submitted assignments.
+ */
+const submissionScoresToString = function(assignments) {
+  var assignmentName = '', submissionScore = '', pointsPossible = '';
+  var scoresString = '';
+
+  for (var i in assignments) {
+    if (assignments.hasOwnProperty(i)) {
+      assignmentName = assignments[i].name;
+      submissionScore = assignments[i].submission.score;
+      pointsPossible = assignments[i].points_possible;
+      var percent;
+      if (submissionScore != null) {
+        percent = (submissionScore / pointsPossible) * 100;
+        scoresString += 'Your score for ', `${assignmentName}`, ' is ', `${percent}`, ' percent. ';
+      }
+    }
+  }
+  return 'Your submission scores are as follows: ' + scoresString;
+}
+
+/**
  * Makes an HTTP GET request to Canvas LMS API, specifying API returns upcoming assignments only.
  * Receives a response from API with all of a user's upcoming assignments for a course with the given course ID.
  * Creates an array of Assignment objects based on API's response.
@@ -188,6 +213,41 @@ const getUpcomingAssignments = function(courseID,callback){
       callback(assignments);
     });
 };
+
+/**
+ * Updated getAssignments function.
+ * Makes an HTTP GET request to Canvas LMS API.
+ * If includeSubmissions param. == true, response includes submissions field.
+ * If bucket param. == upcoming, only assignments with upcoming field set to true will be returned
+ * Otherwise, all Assignments corresponding to courseID param. will be returned.
+ * Creates an array of Assignment objects based on API's response.
+ * Passes array of Assignment objects to callback function.
+ * @param {String} courseID 
+ * @param {boolean} includeSubmissions 
+ * @param {String} bucket 
+ * @param {function} callback 
+ */
+const getAssignments = function(courseID, includeSubmissions, bucket = 'upcoming', callback) {
+  var requestURL = url + 'courses/' + courseID + '/assignments';
+
+  if (includeSubmissions) {
+    request += '?include[]=submission'
+  }
+
+  if (bucket == 'upcoming') {
+    request += '&bucket=upcoming'
+  }
+
+  return axios.get(request, headerOptions)
+    .then(response => {
+      var data = response.data;
+      var assignments = [];
+      for (let i = 0; i < data.length; i++) {
+        assignments.push(new Assignment(data[i]));
+      }
+      callback(assignments);
+    });
+}
 
 /**
  * Create array of Assignments.
@@ -494,6 +554,43 @@ const GetAssignmentIntentHandler = {
     });
   },
 };
+
+/**
+ * Handler for skill's GetSubmisionScores Intent.
+ * Invokes canHandle() to ensure request is an IntentRequest matching SubmissionScoresIntent,
+ * and dialog state is IN_PROGRESS.
+ * Invokes handle() to to handle help request
+ * and give user instructions on how to use the skill.
+ */
+const GetSubmissionScoresIntentHandler = {
+  canHandle(handlerInput) {
+    return handlerInput.requestEnvelope.request.type == 'IntentRequest' &&
+      handlerInput.requestEnvelope.request.intent.name == 'SubmissionScoresIntent' &&
+      handlerInput.requestEnvelope.request.dialogState == 'IN_PROGRESS';
+  },
+  handle(handlerInput) {
+    var requestedCourse = handlerInput.requestEnvelope.request.intent.currentIntent.slots.position.value;
+
+    return new Promise(resolve => {
+      var bestMatch = ld.FinalWord(requestdCourse, classes);
+      var bestMatchCourseID = bestMatch.object.id;
+      
+      getAssignments(bestMatchCourseID, true, '', tasks => {
+        var question = ' Anything else I can help you with?';
+        var response = submissionScoresToString(tasks);
+
+        resolve(handlerInput.responseBuilder
+          .speak(response + question)
+          .withSimpleCard(bestMatch.object.name, response)
+          .withShouldEndSession(false)
+          .getResponse())
+      }).catch(error => {
+        resolve(speakError(handlerInput, 'I had trouble getting your assignments. Try again laster.', error));
+      })
+    })
+  }
+};
+
 
 /**
  * Handler for skill's Help Intent.
