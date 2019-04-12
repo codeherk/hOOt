@@ -24,7 +24,15 @@ var NULL_PHRASE = 404;      //indicates something went wrong initially
 //short hand for console log
 var log = arg => console.log(arg);
 //Log for debugging
-var _p = arg => console.log(arg);
+var _p = arg => {
+    if (debug_print) {
+        console.log(arg);
+    }//end if
+}//end _p
+//condition to print debug
+var debug_print = true;
+
+
 
 /*
  * This function takes in the user requested course and an array of courses to find a single bext match
@@ -46,8 +54,8 @@ var FinalWord = (request, course) => {
 
     }//end check for parameters
 
-    var convertedCourses = preppedCourse(course);
-    var reducedCandidates = reduceArr(request, convertedCourses);
+    var convertedCourses = prepareCourses(course);
+    var reducedCandidates = findMatch(request, convertedCourses);
 
     //Check for empty candidates array
     if (reducedCandidates.length == 0) {
@@ -73,6 +81,99 @@ var FinalWord = (request, course) => {
     return selectCandidate(likelyCandidates);
 
 }//end final word
+
+/*
+ * Function to reduce given array based on how many words match up before giving it to 
+ * levenshtein algorithm for further anaylysis
+ *      Input - userString: phrase given by user
+ *            - coursesArr: array of courses user is enrolled in given by hooT
+ * 
+ *      Output - a reduced array of courses to be analyzed by levenshtein
+ */
+var findMatch = (user_input, courseArr) => {
+
+    //var splitUserString = userString.split(' ');
+    
+    //compare each name in the array with each word in user input
+    for(var i = 0; i<courseArr.length; i++){
+
+        var temp_course = courseArr[i].name;
+        
+        //compare each word with each phrase
+        for(var j = 0; j<user_input.words.length; j++){
+
+            var temp_word = user_input.words[j];
+            if( temp_course.toLowerCase().includes(temp_word.toLowerCase()) ){
+                courseArr[i].match++;
+            }//end
+
+        }//end compare to words
+
+    }//end compare to list
+
+}//end findMatch
+
+/*
+ * Takes in a word and an array and returns a subarray of words that match the given word.
+ *          -Input: request - user given word
+ *                  courseArr - list of words to compare user word against
+ *          -Output: candidates - subarray of words that most closely match the user word
+ */
+var levenCheck = (request, courseArr) => {
+
+    var min = Number.MAX_VALUE;     //initialize min value
+    //var distanceArr = [];           //array of distances
+    var candidates = [];            //subarray of words that most closely match given word
+
+    //or distance of word that most closely matches
+    for (var i = 0; i < courseArr.length; i++) {
+
+        //calculating distance
+        var currentDist = levenshtein(request, courseArr[i].name);
+
+        //load disgance of word onto array
+        courseArr[i].distance = currentDist;
+
+        //set min disatance of words
+        if ( currentDist < min ) {
+            min = currentDist;
+        }//end if
+
+    }//end for
+
+    //check for lowest distance words
+    for (var j = 0; j < courseArr.length; j++) {
+
+        //set closest word match to array
+        if (courseArr[j].distance == min){
+            candidates.push(courseArr[j]);
+        }//end
+
+    }//end
+
+    return candidates;
+
+}//end levencheck
+
+
+/*
+ * Function to prep courses for containment and distance check
+ *      Input - course: array of given courses
+ *      Output - initailizedCourses: array of course objects with appropriate fields for comparisons 
+ */
+var prepareCourses = (courses) => {
+
+    var initailizedCourses = [];
+
+    for(var i = 0; i<courses.length; i++){
+
+        initailizedCourses.push(new CourseData(course[i]));
+
+    }//end for
+
+    return initailizedCourses;
+
+}//end preppedCourse
 
 /*
  * Takes in array of likely candidates and returns a single candidate with highest match value and lowest distance value
@@ -106,133 +207,49 @@ var selectCandidate = (possibleMatches) => {
 
 }//end
 
-/*
- * Function to prep courses for containment and distance check
- *      Input - course: array of given courses
- *      Output - initailizedCourses: array of course objects with appropriate fields for comparisons 
+/**
+ * Object to hold user phrase and also each word of phrase
  */
-var preppedCourse = (course) => {
-
-    var initailizedCourses = [];
-
-    for(var i = 0; i<course.length; i++){
-
-        initailizedCourses.push(new prelimList(course[i].name, course[i].id, i));
-
-    }//end for
-
-    return initailizedCourses;
-
-}//end preppedCourse
-
-/*
- * Function to reduce given array based on how many words match up before giving it to 
- * levenshtein algorithm for further anaylysis
- *      Input - userString: phrase given by user
- *            - coursesArr: array of courses user is enrolled in given by hooT
- * 
- *      Output - a reduced array of courses to be analyzed by levenshtein
- */
-var reduceArr = (userString, courseArr) => {
-
-    var splitUserString = userString.split(' ');
-    
-    //compare each name in the array with each word in user input
-    for(var i = 0; i<courseArr.length; i++){
-
-        var temp_course = courseArr[i].name;
-        
-        //compare each word with each phrase
-        for(var j = 0; j<splitUserString.length; j++){
-
-            var temp_word = splitUserString[j];
-            if( temp_course.toLowerCase().includes(temp_word.toLowerCase()) ){
-                courseArr[i].match++;
-            }//end
-
-        }//end compare to words
-
-    }//end compare to list
-
-    //reduce array to only best matches
-    var matches = courseArr.filter (bestMatch => {
-        return bestMatch.match != 0; 
-    });
-
-    return matches;
-
-}//end reduceArr
-
-/*
- * Takes in a word and an array and returns a subarray of words that match the given word.
- *          -Input: request - user given word
- *                  courseArr - list of words to compare user word against
- *          -Output: candidates - subarray of words that most closely match the user word
- */
-var levenCheck = (request, courseArr) => {
-
-    var min = Number.MAX_VALUE;     //initialize min value
-    //var distanceArr = [];           //array of distances
-    var candidates = [];            //subarray of words that most closely match given word
-
-    //may not be needed
-    // //if there is only one word in the array return the array itself
-    // if ( courseArr.length == 1 ) {
-
-    //     return courseArr;
-
-    // }//end check for single enrollment
-
-    //calculate distance and load up distnce array with results and set the minimum value 
-    //or distance of word that most closely matches
-    for (var i = 0; i < courseArr.length; i++) {
-
-        //calculating distance
-        var currentDist = levenshtein(request, courseArr[i].name);
-
-        //load disgance of word onto array
-        courseArr[i].distance = currentDist;
-
-        //set min disatance of words
-        if ( currentDist < min ) {
-            min = currentDist;
-        }//end if
-
-    }//end for
-
-    //check for lowest distance words
-    for (var j = 0; j < courseArr.length; j++) {
-
-        //set closest word match to array
-        if (courseArr[j].distance == min){
-            candidates.push(courseArr[j]);
-        }//end
-
+function user_input(phrase) {
+    this.input = phrase;
+    this.words = phrase.split(' ');
+    var is_one_word;
+    if (this.words.length == 1) {
+        this.is_one_word = true;
+    } else {
+        this.is_one_word = false;
     }//end
-
-    return candidates;
-
-}//end levencheck
-
-
-
-
-
-
-
+}//end 
 
 /*
- * Temporary object to hold informatation about given courses array
+ * Object to hold all information about course and match data
  */
-function prelimList(name, id, position){
-    this.name = name;
-    this.position = position;
-    this.id = id;
-    this.words = name.split(' ');
-    this.match_point = [];
+function CourseData(obj){
+    this.name = obj.name;
+    this.id = obj.id;
+    this.words = obj.name.split(' ');
+    this.match_position = [];
     this.match = 0;
+    this.match_input_position = [];
+    this.match_to_input = 0;
     this.distance = 0;
-}//end preLimList
+}//end CourseData
+
+function DataAggregate(user, courseArray) {
+    this.user_input = user;
+    this.courseDataArray = prepareCourses(courseArray);
+
+    this.populateMatchData = () => {
+        return this;
+    };
+    this.populateInputMatch = () => {
+        return this;
+    };
+    this.populateDistanceData = () => {
+        return this;
+    }; 
+
+}//end
 
 /*
  * Object used to mimic course array given by hooT
@@ -253,6 +270,8 @@ function candidate(obj, status){
     this.status = status;
 
 }//end candidate
+
+
 
 
 

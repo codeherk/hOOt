@@ -499,11 +499,10 @@ const beginTest = () => {
   
     }//end for
   
-  
   });
 
 }//end begin test
 
-//beginTest();
+beginTest();
 
 
