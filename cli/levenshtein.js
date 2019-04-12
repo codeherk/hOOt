@@ -29,8 +29,17 @@ var _p = arg => {
         console.log(arg);
     }//end if
 }//end _p
+
+var _db = (arg, debug) => {
+    if (debug) {
+        console.log(arg);
+    }//end if
+}//end _db
 //condition to print debug
 var debug_print = true;
+//InsidePrepareCourse
+var ISCarray = true;
+
 
 
 
@@ -114,6 +123,34 @@ var findMatch = (user_input, courseArr) => {
 }//end findMatch
 
 /*
+ * This function finds out how many matches a user phrase has to a course name 
+ * and which words of the course name is matched
+ *      Input: userPhrase - object containing the original phrase 
+ *                          and an array of each word in the phrase
+ *             courseList - object containing match value and an array of each word in the course
+ *                          also contains an array of indices for which position the matches occured
+ *      Output: none
+ */
+var inputWordMatch = (userPhrase, courseList) => {
+    
+    //iterate through each course
+    for (var i = 0; i < courseList.length; i++) {
+
+        //iterate through each word in user phrase
+        for (var j = 0; j < userPhrase.words.length; j++) {
+
+            //iterate through each word in the current course
+            for (var k = 0; k < courseList[i].words.length; k++) {
+
+            }//end iterate through each word in course
+
+        }//end iterate through user words
+
+    }//end iterate through courses
+
+}//end inputWordMatch
+
+/*
  * Takes in a word and an array and returns a subarray of words that match the given word.
  *          -Input: request - user given word
  *                  courseArr - list of words to compare user word against
@@ -163,17 +200,24 @@ var levenCheck = (request, courseArr) => {
  */
 var prepareCourses = (courses) => {
 
+    _db(courses, ISCarray);
     var initailizedCourses = [];
 
     for(var i = 0; i<courses.length; i++){
 
-        initailizedCourses.push(new CourseData(course[i]));
+        initailizedCourses.push(new CourseData(courses[i],courses[i].name) );
 
     }//end for
 
     return initailizedCourses;
 
 }//end preppedCourse
+
+var prepareUserInput = (userInput) => {
+
+    return new user_input(userInput);
+
+}//end prepareUserInput
 
 /*
  * Takes in array of likely candidates and returns a single candidate with highest match value and lowest distance value
@@ -211,8 +255,8 @@ var selectCandidate = (possibleMatches) => {
  * Object to hold user phrase and also each word of phrase
  */
 function user_input(phrase) {
-    this.input = phrase;
-    this.words = phrase.split(' ');
+    this.input = phrase.toLowerCase();
+    this.words = phrase.toLowerCase().split(' ');
     var is_one_word;
     if (this.words.length == 1) {
         this.is_one_word = true;
@@ -224,10 +268,10 @@ function user_input(phrase) {
 /*
  * Object to hold all information about course and match data
  */
-function CourseData(obj){
-    this.name = obj.name;
+function CourseData(obj, phrase){
+    this.name = obj.name.toLowerCase();
     this.id = obj.id;
-    this.words = obj.name.split(' ');
+    this.words = phrase.split(' ');
     this.match_position = [];
     this.match = 0;
     this.match_input_position = [];
@@ -236,7 +280,7 @@ function CourseData(obj){
 }//end CourseData
 
 function DataAggregate(user, courseArray) {
-    this.user_input = user;
+    this.user_input = prepareUserInput(user);
     this.courseDataArray = prepareCourses(courseArray);
 
     this.populateMatchData = () => {
@@ -247,7 +291,7 @@ function DataAggregate(user, courseArray) {
     };
     this.populateDistanceData = () => {
         return this;
-    }; 
+    };
 
 }//end
 
@@ -258,7 +302,19 @@ function DataAggregate(user, courseArray) {
 function hooTCourse(obj){
     this.id = Math.floor(Math.random()*10000);
     this.name = obj;
-}//end hooTCourses
+}//end hooTCourse
+
+var hootArrayPopulate = (arr) => {
+
+    var hooTArray = [];
+
+    for (var i = 0; i<arr.length; i++) {
+        hooTArray.push(new hooTCourse(arr[i]));
+    }//end
+
+    return hooTArray;
+
+}//end
 
 /*
  * Object to return
@@ -300,6 +356,34 @@ var toString = (list) => {
     return listOfWords;
 
 }//end
+
+
+
+//test
+
+var testphrase = 'hello poop world';
+var testArr = ['this is a test','This is Also a poop',
+                'Piss off','I like Big','Gold Experience',
+                'Pussy Control','Finger Prince'];
+
+var testArray = hootArrayPopulate(testArr);
+
+_p(testArray);
+
+var test = new DataAggregate(testphrase, testArray);
+
+
+_p(test);
+
+// for (var i = 0; i<test.courseDataArray.length; i++) {
+
+//     for (var j = 0; j < test.courseDataArray[i].words.length; j++) {
+//         _p(test.courseDataArray[i].words[j]);
+//     }//end for j
+
+// }//for i
+
+
 
 //things to export
 module.exports = { FinalWord };
