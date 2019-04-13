@@ -118,5 +118,36 @@
         ]
       }
     ]
-  }
+  },
+  "dialog": {
+    "intents": [
+      {
+        "name": "SubmissionScoresIntent",
+        "confirmationRequired": false,
+        "prompts": {},
+        "slots": [
+          {
+            "name": "position",
+            "type": "AMAZON.SearchQuery",
+            "confirmationRequired": false,
+            "elicitationRequired": true,
+            "prompts": {
+              "elicitation": "Elicit.Intent-SubmissionScoresIntent.IntentSlot-position"
+            } 
+          }
+        ]
+      }
+    ]
+  }, 
+  "prompts": [
+    {
+      "id": "Elicit.Intent-SubmissionScoresIntent.IntentSlot-position",
+      "variations": [
+        {
+          "type": "PlainText",
+          "value": "Which course's grades would you like me to tell you about"
+        }
+      ]
+    }
+  ]
 }

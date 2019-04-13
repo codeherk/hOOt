@@ -559,8 +559,8 @@ const GetAssignmentIntentHandler = {
  * Handler for skill's GetSubmisionScores Intent.
  * Invokes canHandle() to ensure request is an IntentRequest matching SubmissionScoresIntent,
  * and dialog state is IN_PROGRESS.
- * Invokes handle() to to handle help request
- * and give user instructions on how to use the skill.
+ * Gets user response and use Levenshtein algo. to 
+ * Invokes handle() to handle getSubmissionScores request.
  */
 const GetSubmissionScoresIntentHandler = {
   canHandle(handlerInput) {
@@ -685,6 +685,7 @@ exports.handler = skillBuilder
     TACoursesIntentHandler,
     AssignmentIntentHandler,
     GetAssignmentIntentHandler,
+    GetSubmissionScoresIntentHandler,
     HelpIntentHandler,
     CancelAndStopIntentHandler,
     SessionEndedRequestHandler
