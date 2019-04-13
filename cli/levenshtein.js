@@ -16,7 +16,6 @@ var NO_MATCH = 401      //indicates no phrase is not contained in any course
 var NULL_ARRAY = 402;   //indicates array was null
 var NULL_PHRASE = 404;      //indicates something went wrong initially
 
-
 /*
  * End status code
  */
@@ -271,13 +270,14 @@ function user_input(phrase) {
 function CourseData(obj, phrase){
     this.name = obj.name.toLowerCase();
     this.id = obj.id;
-    this.words = phrase.split(' ');
+    this.words = obj.name.split(' ');
     this.match_position = [];
     this.match = 0;
     this.match_input_position = [];
     this.match_to_input = 0;
     this.distance = 0;
 }//end CourseData
+
 
 function DataAggregate(user, courseArray) {
     this.user_input = prepareUserInput(user);
@@ -295,26 +295,7 @@ function DataAggregate(user, courseArray) {
 
 }//end
 
-/*
- * Object used to mimic course array given by hooT
- * ############Used for testing only###############
- */
-function hooTCourse(obj){
-    this.id = Math.floor(Math.random()*10000);
-    this.name = obj;
-}//end hooTCourse
 
-var hootArrayPopulate = (arr) => {
-
-    var hooTArray = [];
-
-    for (var i = 0; i<arr.length; i++) {
-        hooTArray.push(new hooTCourse(arr[i]));
-    }//end
-
-    return hooTArray;
-
-}//end
 
 /*
  * Object to return
@@ -357,9 +338,32 @@ var toString = (list) => {
 
 }//end
 
+/*
+ * Object used to mimic course array given by hooT
+ * ############Used for testing only###############
+ */
+function hooTCourse(obj){
+    this.id = Math.floor(Math.random()*10000);
+    this.name = obj;
+}//end hooTCourse
+
+var hootArrayPopulate = (arr) => {
+
+    var hooTArray = [];
+
+    for (var i = 0; i<arr.length; i++) {
+        hooTArray.push(new hooTCourse(arr[i]));
+    }//end
+
+    return hooTArray;
+
+}//end
 
 
-//test
+
+
+
+//########################test##########################################
 
 var testphrase = 'hello poop world';
 var testArr = ['this is a test','This is Also a poop',
@@ -375,14 +379,15 @@ var test = new DataAggregate(testphrase, testArray);
 
 _p(test);
 
-// for (var i = 0; i<test.courseDataArray.length; i++) {
+for (var i = 0; i<test.courseDataArray.length; i++) {
 
-//     for (var j = 0; j < test.courseDataArray[i].words.length; j++) {
-//         _p(test.courseDataArray[i].words[j]);
-//     }//end for j
+    for (var j = 0; j < test.courseDataArray[i].words.length; j++) {
+        _p(test.courseDataArray[i].words[j]);
+    }//end for j
 
-// }//for i
+}//for i
 
+//########################test##########################################
 
 
 //things to export
