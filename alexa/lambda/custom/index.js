@@ -575,6 +575,8 @@ const GetSubmissionScoresIntentHandler = {
       var bestMatch = ld.FinalWord(requestdCourse, classes);
       var bestMatchCourseID = bestMatch.object.id;
       
+      classes = mapCourses(classes,'name');
+
       getAssignments(bestMatchCourseID, true, '', tasks => {
         var question = ' Anything else I can help you with?';
         var response = submissionScoresToString(tasks);
@@ -585,7 +587,7 @@ const GetSubmissionScoresIntentHandler = {
           .withShouldEndSession(false)
           .getResponse())
       }).catch(error => {
-        resolve(speakError(handlerInput, 'I had trouble getting your assignments. Try again laster.', error));
+        resolve(speakError(handlerInput, 'I had trouble getting your assignments. Try again later.', error));
       })
     })
   }
