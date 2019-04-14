@@ -57,6 +57,35 @@
           }
         ]
       }
+    },
+    "erikrosales": {
+      "skill_id": "amzn1.ask.skill.b82613cd-3e68-449c-898b-2bc51c766e72",
+      "was_cloned": false,
+      "merge": {},
+      "resources": {
+        "manifest": {
+          "eTag": "88afa1d9823998cbb7bc39e9c01265e4"
+        },
+        "interactionModel": {
+          "en-US": {
+            "eTag": "66ccb9c9a07ca4d04474d2b6b756a5f9"
+          }
+        },
+        "lambda": [
+          {
+            "alexaUsage": [
+              "custom/default"
+            ],
+            "arn": "arn:aws:lambda:us-east-1:696734041478:function:getCourses",
+            "awsRegion": "us-east-1",
+            "codeUri": "lambda/custom",
+            "functionName": "getCourses",
+            "handler": "index.handler",
+            "revisionId": "ebac48a3-c400-4008-94ad-b626d2f20a2b",
+            "runtime": "nodejs8.10"
+          }
+        ]
+      }
     }
   }
 }
