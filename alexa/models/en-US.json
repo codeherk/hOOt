@@ -1,7 +1,7 @@
 {
   "interactionModel": {
     "languageModel": {
-      "invocationName": "temple canvas",
+      "invocationName": "hoot",
       "intents": [
         {
           "name": "AMAZON.CancelIntent",
@@ -14,12 +14,6 @@
         {
           "name": "AMAZON.StopIntent",
           "samples": []
-        },
-        {
-          "name": "HelloWorldIntent",
-          "samples": [
-            "hello"
-          ]
         },
         {
           "name": "CoursesIntent",
@@ -124,6 +118,7 @@
         ]
       }
     ]
+<<<<<<< HEAD
   },
   "dialog": {
     "intents": [
@@ -157,3 +152,7 @@
     }
   ]
 }
+=======
+  }
+}
+>>>>>>> bdcbd5c6602ca7fc171dc904d25d4367713aa052

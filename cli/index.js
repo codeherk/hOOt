@@ -87,20 +87,6 @@ const getCourses = function (callback) {
   });
 }
 
-const getTACourses = function (callback) {
-  return axios.get(url + courseURL + TA_URL, headerOptions)
-  .then(response => {
-    //log(response) //debug
-    var courses = [];
-    for(let i = 0; i < response.data.length; i++){
-      courses.push(new Course(response.data[i]));
-    }
-    //log(courses) //debug
-    courses = courses.filter((course) => !ignoreCourses.includes(course.name));
-    callback(courses);
-  });
-}
-
 /**
  * Makes an HTTP GET request to Canvas LMS API.
  * Specifies that request should return courses in which user is a TA
@@ -413,41 +399,34 @@ log(ascii_art);
   log("Could not get courses. " + error, red);
 });
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-
-=======
->>>>>>> codeherk
->>>>>>> c65114be02680000bbf2ea7bc09903288bd5561d
 getTACourses(courses => {
   //var courseIDs = formatCourses(courses,'id');
   var courseIDs = mapCourses(courses,'id');
   var speechText = 'You are currently teaching: ' + coursesToString(courses);
   log(speechText);
   
-  // getContentExports(courseIDs[0], res => {
-  //   log(res);
-  // getUsers(courseIDs[0], res => {
-  //   log(res);
-  // })
+  getContentExports(courseIDs[0], res => {
+    log(res);
+  getUsers(courseIDs[0], res => {
+    log(res);
+  })
 
   // get all assignments and tell total
 
-  // getAssignments(courseIDs[0], tasks => {
-  //   //log(tasks[0].name)
-  //   //log(tasks[0].description);
-  //   log(formatAssignments(tasks))
-  // }).catch(error => {
-  //   log("Could not get assignments. " + error, red);
-  // });
+  getAssignments(courseIDs[0], tasks => {
+    //log(tasks[0].name)
+    //log(tasks[0].description);
+    log(formatAssignments(tasks))
+  }).catch(error => {
+    log("Could not get assignments. " + error, red);
+  });
 }).catch(error => {
   log("Could not get courses. " + error, red);
-<<<<<<< HEAD
 });*/
 
 getCourses(courses => {
   var courseIDs = mapCourses(courses,'id');
+  
   //receive grades for ALL submitted assignments in ALL registered courses.
   for (var i = 0; i < courseIDs.length; i++) {
     getAssignments(courseIDs[i], true, tasks => {
