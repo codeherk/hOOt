@@ -302,24 +302,6 @@ const LaunchRequestHandler = {
 };
 
 /**
- * @todo determine if this handler is needed. If not, remove during refactor.
- */
-const HelloWorldIntentHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest' &&
-      handlerInput.requestEnvelope.request.intent.name === 'HelloWorldIntent';
-  },
-  handle(handlerInput) {
-    const speechText = 'Hello World!';
-
-    return handlerInput.responseBuilder
-      .speak(speechText)
-      .withSimpleCard('Hello World', speechText)
-      .getResponse();
-  },
-};
-
-/**
  * Handler for skill's getCourses Intent.
  * Invokes canHandle() to ensure request is an IntentRequest
  * matching the declared CoursesIntent Intent.
@@ -583,7 +565,6 @@ const skillBuilder = Alexa.SkillBuilders.custom();
 exports.handler = skillBuilder
   .addRequestHandlers(
     LaunchRequestHandler,
-    HelloWorldIntentHandler,
     CourseScoresIntentHandler,
     CoursesIntentHandler,
     TACoursesIntentHandler,

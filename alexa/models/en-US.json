@@ -16,12 +16,6 @@
           "samples": []
         },
         {
-          "name": "HelloWorldIntent",
-          "samples": [
-            "hello"
-          ]
-        },
-        {
           "name": "CoursesIntent",
           "samples": [
             "courses",
