@@ -490,8 +490,11 @@ const beginTest = () => {
     for (let i = 0; i<test_phrase.length; i++) {
   
       log('You are asking for: ' + '\"' + test_phrase[i] + '\"' + '\n');
-      log('Results:\n');
+      log('Results:');
       var temp = ld.FinalWord(test_phrase[i], enrolled);
+
+      //log(temp.object.name + '\n');
+
       log('name: ' + temp.object.name 
           + '\nleven distance: ' + temp.object.distance
           + '\nmatch: ' + temp.object.match);

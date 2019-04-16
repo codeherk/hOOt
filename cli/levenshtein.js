@@ -2,7 +2,8 @@
  * Algorithm to check for course name that has the best match to user's requested phrase
  * Uses levenshtein algorithm to check difference between phrases
  * Checks for phrase being a sub string of other words to better increase match
- * 
+ * requires js-levenshtein
+ *      npm i --save js-levenshtein
  * 
  */
 const levenshtein = require('js-levenshtein');
@@ -37,7 +38,9 @@ var _db = (arg, debug) => {
 //condition to print debug
 var debug_print = true;
 //InsidePrepareCourse
-var ISCarray = true;
+var ISCarray = false;
+var matchToCourseBoo = false;
+var matchToPhraseBoo = false;
 
 
 
@@ -62,8 +65,13 @@ var FinalWord = (request, course) => {
 
     }//end check for parameters
 
+    var requestPrime = prepareUserInput(request);
+
     var convertedCourses = prepareCourses(course);
-    var reducedCandidates = findMatch(request, convertedCourses);
+    findMatch(requestPrime, convertedCourses);
+    var reducedCandidates = convertedCourses.filter (bestMatch => {
+        return bestMatch.match != 0;
+    });
 
     //Check for empty candidates array
     if (reducedCandidates.length == 0) {
@@ -74,7 +82,7 @@ var FinalWord = (request, course) => {
 
     } else {
 
-        var likelyCandidates = levenCheck(request, reducedCandidates);
+        var likelyCandidates = levenCheck(requestPrime, reducedCandidates);
 
     }//end check for empty candidates array
 
@@ -121,6 +129,7 @@ var findMatch = (user_input, courseArr) => {
 
 }//end findMatch
 
+
 /*
  * This function finds out how many matches a user phrase has to a course name 
  * and which words of the course name is matched
@@ -130,7 +139,7 @@ var findMatch = (user_input, courseArr) => {
  *                          also contains an array of indices for which position the matches occured
  *      Output: none
  */
-var inputWordMatch = (userPhrase, courseList) => {
+var matchToCourse = (userPhrase, courseList) => {
     
     //iterate through each course
     for (var i = 0; i < courseList.length; i++) {
@@ -141,6 +150,14 @@ var inputWordMatch = (userPhrase, courseList) => {
             //iterate through each word in the current course
             for (var k = 0; k < courseList[i].words.length; k++) {
 
+                _db(courseList[i].words[k] + '======' + userPhrase.words[j] + '=====' + courseList[i].words[k].includes(userPhrase.words[j]), matchToCourseBoo)
+                //check to see if word in course matches word in phrase
+                //if they are increase match value by one and log the indice of the match
+                if ( courseList[i].words[k].includes(userPhrase.words[j]) ) {
+                    courseList[i].match_position.push(k);
+                    courseList[i].match++;
+                }//end
+
             }//end iterate through each word in course
 
         }//end iterate through user words
@@ -148,6 +165,50 @@ var inputWordMatch = (userPhrase, courseList) => {
     }//end iterate through courses
 
 }//end inputWordMatch
+
+/*
+ * This function finds out how many matches a course name has to a user phrase
+ * and which words of the user phrase is matched
+ *      Input: userPhrase - object containing the original phrase 
+ *                          and an array of each word in the phrase
+ *             courseList - object containing match value and an array of each word in the course
+ *                          also contains an array of indices for which position the matches occured
+ *      Output: none
+ */
+var matchToPhrase = (userPhrase, courseList) => {
+
+    //iterate through user phrase
+    for (var i = 0; i < userPhrase.words.length; i++) {
+
+        //iterate through courses
+        for (var j = 0; j < courseList.length; j++) {
+
+            //iterate through each word in course
+            for (var k = 0; k < courseList[j].words.length; k++) {
+
+                _db(userPhrase.words[i] + ':::::' + courseList[j].words[k] + ':::' + userPhrase.words[i].includes(courseList[j].words[k]), matchToPhraseBoo);
+                //check to see if a phrase matches to word
+                if ( userPhrase.words[i].includes(courseList[j].words[k]) ) {
+
+                    courseList[j].match_input_position.push(k);
+                    courseList[j].match_to_input++;
+
+                }//end check for phrase match
+
+            }//end iterate through word in course
+
+        }//end iterate through courses
+
+    }//end iterating through user words
+
+}//end match to phrase
+
+/**
+ * This function combines the array of indices with matches obtained from the match functions 
+ * and combines them with no duplicates and and in order from smallest to largest to construct 
+ * the phrase to be used to compared with the user phrase using the levenshtein algorithm  
+ */
+var constructPrimePhrase = (courseList) => {}//end constructPrimePhrase
 
 /*
  * Takes in a word and an array and returns a subarray of words that match the given word.
@@ -165,7 +226,7 @@ var levenCheck = (request, courseArr) => {
     for (var i = 0; i < courseArr.length; i++) {
 
         //calculating distance
-        var currentDist = levenshtein(request, courseArr[i].name);
+        var currentDist = levenshtein(request.input, courseArr[i].name);
 
         //load disgance of word onto array
         courseArr[i].distance = currentDist;
@@ -270,11 +331,13 @@ function user_input(phrase) {
 function CourseData(obj, phrase){
     this.name = obj.name.toLowerCase();
     this.id = obj.id;
-    this.words = obj.name.split(' ');
+    this.words = obj.name.toLowerCase().split(' ');
     this.match_position = [];
     this.match = 0;
     this.match_input_position = [];
     this.match_to_input = 0;
+    this.primeIndex;
+    this.namePrime;
     this.distance = 0;
 }//end CourseData
 
@@ -284,11 +347,18 @@ function DataAggregate(user, courseArray) {
     this.courseDataArray = prepareCourses(courseArray);
 
     this.populateMatchData = () => {
+        matchToCourse(this.user_input, this.courseDataArray);
         return this;
     };
     this.populateInputMatch = () => {
+        matchToPhrase(this.user_input, this.courseDataArray);
         return this;
     };
+
+    this.primeName = () => {
+        return this;
+    };
+
     this.populateDistanceData = () => {
         return this;
     };
@@ -307,12 +377,6 @@ function candidate(obj, status){
     this.status = status;
 
 }//end candidate
-
-
-
-
-
-
 
 /*
  * Function to format array of closely matching words to string
@@ -365,27 +429,43 @@ var hootArrayPopulate = (arr) => {
 
 //########################test##########################################
 
-var testphrase = 'hello poop world';
-var testArr = ['this is a test','This is Also a poop',
-                'Piss off','I like Big','Gold Experience',
-                'Pussy Control','Finger Prince'];
+// var testphrase = 'hello poop world is con controlled';
+// var testArr = ['this is a test','This is Also a poop',
+//                 'Piss off','I like Big','Gold Experience',
+//                 'Pussy Control','Finger Prince'];
 
-var testArray = hootArrayPopulate(testArr);
+// var testArray = hootArrayPopulate(testArr);
 
-_p(testArray);
+// _db(testArray,false);
 
-var test = new DataAggregate(testphrase, testArray);
+// var test = new DataAggregate(testphrase, testArray);
 
+// test.populateMatchData()
+//     .populateInputMatch();
 
-_p(test);
+// _db(test,false);
 
-for (var i = 0; i<test.courseDataArray.length; i++) {
+// var a = [1,2,4,7,9,23,44,55];
+// var b = [1,4,5,2,7];
 
-    for (var j = 0; j < test.courseDataArray[i].words.length; j++) {
-        _p(test.courseDataArray[i].words[j]);
-    }//end for j
+// _p('a::::::::: ' + a);
+// _p('b::::::::: ' + b);
 
-}//for i
+// var c = Array.from(new Set(a.concat(b)));
+
+// _p('c::::::::: ' + c);
+// c.sort((a,b)=> a-b);
+// _p(c);
+
+///////////////////////////////////////
+
+// for (var i = 0; i<test.courseDataArray.length; i++) {
+
+//     for (var j = 0; j < test.courseDataArray[i].words.length; j++) {
+//         _p(test.courseDataArray[i].words[j]);
+//     }//end for j
+
+// }//for i
 
 //########################test##########################################
 
