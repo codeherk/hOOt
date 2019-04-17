@@ -347,26 +347,25 @@ const getContentExports = function (courseID, callback) {
       callback(res.data);
     });
 }
-
-  /**
-   * Makes an HTTP GET request to Canvas LMS API.
-   * Receives response from API containing list of all students enrolled in a course with the given Course ID.
-   * Calls callback function, passing in response as param. 
-   * @param {String} courseID 
-   * @param {function} callback 
-   */
-  const getUsers = function (courseID, callback) {
-    var result = url + 'courses/' + courseID + '/users' + '?enrollment_type[]=student';
-    log(result);
-    return get(result).then(data => {
-      var students = [];
-      // create student objects
-      data.forEach(obj => {
-        students.push(new Student(obj));
-      });
-      callback(students);
+/**
+ * Makes an HTTP GET request to Canvas LMS API.
+ * Receives response from API containing list of all students enrolled in a course with the given Course ID.
+ * Calls callback function, passing in response as param. 
+ * @param {String} courseID 
+ * @param {function} callback 
+*/
+const getUsers = function (courseID, callback) {
+  var result = url + 'courses/' + courseID + '/users' + '?enrollment_type[]=student';
+  //log(result);
+  return get(result).then(data => {
+    var students = [];
+    // create student objects
+    data.forEach(obj => {
+      students.push(new Student(obj));
     });
-  }
+    callback(students);
+  });
+}
 
 function get(url, data = []) {
   return axios.get(url,headerOptions)
@@ -379,12 +378,22 @@ function get(url, data = []) {
       if (nextLink && nextLink.length) {
         nextLink = nextLink[0].split(";")[0];
         nextLink = nextLink.substring(1, nextLink.length - 1);
-        log(nextLink);
+        log('NEXT LINK:\n' + nextLink);
         return get(nextLink, data)
       }else{
         return data
       }
     });
+}
+
+function formatStudents(students){
+  var string = '';
+  let i = 0;
+  for (; i < students.length - 1; i++) {
+    string += `${students[i].name}, `;
+  }
+  string += `and ${students[i].name}.`;
+  return string;
 }
 
 /********************************************************************************************/
@@ -457,6 +466,8 @@ getCourses(courses => {
   // }
 
   getUsers(courseIDs[0], res => {
-    log(res);
+    //log(res);
+    log(`Students in ${courses[0].name}`,cyan)
+    log(formatStudents(res));
   })
 });
