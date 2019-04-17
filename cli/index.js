@@ -386,13 +386,18 @@ function get(url, data = []) {
     });
 }
 
-function formatStudents(students){
+function formatStudents(students,by = 'full'){
   var string = '';
   let i = 0;
-  for (; i < students.length - 1; i++) {
-    string += `${students[i].name}, `;
+  if(by == 'first'){
+    students = students.map(student => student.name.split(' ')[0]);
+  }else{
+    students = students.map(student => student.name);
   }
-  string += `and ${students[i].name}.`;
+  for (; i < students.length - 1; i++) {
+    string += `${students[i]}, `;
+  }
+  string += `and ${students[i]}.`;
   return string;
 }
 
@@ -468,6 +473,7 @@ getCourses(courses => {
   getUsers(courseIDs[0], res => {
     //log(res);
     log(`Students in ${courses[0].name}`,cyan)
-    log(formatStudents(res));
+    //log(formatStudents(res));
+    log(formatStudents(res,'first'));
   })
 });
