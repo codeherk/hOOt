@@ -206,9 +206,76 @@ var matchToPhrase = (userPhrase, courseList) => {
 /**
  * This function combines the array of indices with matches obtained from the match functions 
  * and combines them with no duplicates and and in order from smallest to largest to construct 
- * the phrase to be used to compared with the user phrase using the levenshtein algorithm  
+ * the phrase to be used to compared with the user phrase using the levenshtein algorithm
+ * 
  */
-var constructPrimePhrase = (courseList) => {}//end constructPrimePhrase
+var constructPrimePhrase = (courseList) => {
+
+    for(var i = 0; i < courseList.length; i++) {
+        
+        courseList[i].primeIndex = setUnion(courseList[i].match_position, courseList[i].match_input_position);
+        courseList[i].namePrime = constructPhrase(courseList[i].words, courseList[i].primeIndex);
+
+    }//end
+
+}//end constructPrimePhrase
+
+/**
+ * This function takes in two arrays on integers and combines them
+ * such that there are no duplicates and the new array is ordered from least to greatest
+ *      Input: setA, setB - the arrays to be concatenated.
+ *      Output: setC - the concatenated array with no duplicates and sorted
+ */
+var setUnion = (setA, setB) => {
+
+    var setC = setA.concat(setB);
+
+    //first pointer to check reference to object being checked for dupe
+    for (var i = 0; i < setC.length; i++) {
+        //second pointer to iterate through array to check for dupe
+        for (var j = i+1; j < setC.length; j++) {
+            //check for duoe
+            if ( setC[i] === setC[j] ) {
+                //remove duplicate and shift j back to account for array shifting down after remove
+                setC.splice(j--,1);
+            }//check for duplicates
+        }//end second pointer
+    }//end first pointer 
+
+    return setC.sort((a,b)=> a-b);
+
+}//end setUnion
+
+/**
+ * This function constructs the new name for a course based on how many
+ * of the words in the course matched up to the request by the user
+ * For example: 
+ *          if the course name is 'Hello My name is Java Script'
+ *          and the user phrase was 'Hello Java Script'
+ * It would return 'Hello Java script'
+ * 
+ *      Input: words - An array of words that make up a course name
+ *             indices - An array of references to the words that matched the words in a user request
+ *                            
+ *      Output: newPhrase - The new course name based on the amount of matches
+ */
+var constructPhrase = (words, indices) => {
+
+    var newPhrase = '';
+
+    if (indices.length == 1) {
+        return newPhrase = words[indices[0]];
+    }//end
+
+    for (var i = 0; i<indices.length-1; i++) {
+
+        newPhrase += words[indices[i]] + ' ';
+    
+    }//end
+
+    return newPhrase += words[indices[indices.length-1]];
+
+}//end construct phrase
 
 /*
  * Takes in a word and an array and returns a subarray of words that match the given word.
@@ -336,8 +403,8 @@ function CourseData(obj, phrase){
     this.match = 0;
     this.match_input_position = [];
     this.match_to_input = 0;
-    this.primeIndex;
-    this.namePrime;
+    this.primeIndex = [];
+    this.namePrime = '';
     this.distance = 0;
 }//end CourseData
 
@@ -355,7 +422,20 @@ function DataAggregate(user, courseArray) {
         return this;
     };
 
+    this.trimNonMatch = () => {
+        for (var i = 0; i<this.courseDataArray.length; i++) {
+            var check = this.courseDataArray[i];
+            //if there is no match
+            if( check.match == 0 && check.match_to_input == 0 ) {
+                //take out that element and shift pointer back to account for array shift
+                this.courseDataArray.splice(i--,1);
+            }//end
+        }//end for
+        return this;
+    };
+
     this.primeName = () => {
+        constructPrimePhrase(this.courseDataArray);
         return this;
     };
 
@@ -429,24 +509,40 @@ var hootArrayPopulate = (arr) => {
 
 //########################test##########################################
 
-// var testphrase = 'hello poop world is con controlled';
-// var testArr = ['this is a test','This is Also a poop',
-//                 'Piss off','I like Big','Gold Experience',
-//                 'Pussy Control','Finger Prince'];
+var testphrase = 'hello poop world is con controlled';
+var testArr = ['this is a test','This is Also a poop',
+                'Piss off','I like Big','Gold Experience',
+                'Pussy Control','Finger Prince'];
 
-// var testArray = hootArrayPopulate(testArr);
+var testArray = hootArrayPopulate(testArr);
 
-// _db(testArray,false);
+_db(testArray,true);
 
-// var test = new DataAggregate(testphrase, testArray);
+var test = new DataAggregate(testphrase, testArray);
 
-// test.populateMatchData()
-//     .populateInputMatch();
+test.populateMatchData()
+    .populateInputMatch();
+    
+_db(test,true);
 
-// _db(test,false);
+test.trimNonMatch()
+    .primeName();
 
-// var a = [1,2,4,7,9,23,44,55];
-// var b = [1,4,5,2,7];
+_db(test,true);
+
+//var a = [23,44,55,1,2,4,7,9,];
+//var b = [1,4,5,2,7,55];
+
+//var a = [11,1,1,1,1,1,1,1];
+//var b = [1,1,1,1,1,1];
+
+var words = ['Hello','My','Name','Is','A','Poop'];
+var indexs = [1,3,4];
+
+
+// var p = constructPhrase(words,indexs);
+
+// _p(p);
 
 // _p('a::::::::: ' + a);
 // _p('b::::::::: ' + b);
