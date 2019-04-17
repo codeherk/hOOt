@@ -446,10 +446,9 @@ const CourseScoresIntentHandler = {
 };
 
 /**
- * Handler for skills getAssignments Intent.
- * Invokes canHandle() to ensure request is an IntentRequest,
- * matching the declared Assignment Intent.
- * Invokes handle() to receive 
+ * Receive initial user input.
+ * Get list of user's classes based on access token in use.
+ * Save courseList to object.
  */
 const AssignmentIntentHandler = {
   canHandle(handlerInput) {
@@ -483,6 +482,14 @@ const AssignmentIntentHandler = {
   },
 };
 
+/**
+ * Handler for skills GetAssignment Intent.
+ * Invokes canHandle() to ensure request is an IntentRequest,
+ * matching the declared Assignment Intent,
+ * and that the status of the dialogState is 'IN_PROGRESS'.
+ * Invokes handle() to fetch list of upcoming assignments for the best match to the user's
+ * initially vocalized course, and vocalizes that list to the user.
+ */
 const GetAssignmentIntentHandler = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request;
@@ -537,6 +544,11 @@ const GetAssignmentIntentHandler = {
   },
 };
 
+/**
+ * Receive initial user input.
+ * Get list of user's classes based on access token in use.
+ * Save courseList to object.
+ */
 const SubmissionScoresIntentHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === 'IntentRequest' &&
@@ -560,6 +572,15 @@ const SubmissionScoresIntentHandler = {
   },
 };
 
+/**
+ * Handler for skills getSubmissionScores Intent.
+ * Invokes canHandle() to ensure request is an IntentRequest,
+ * matching the declared SubmissionScores Intent,
+ * and that the status of the dialogState is 'IN_PROGRESS'.
+ * Invokes handle() to fetch list of assignments for the best match to the user's
+ * initially vocalized course, 
+ * and use that assignment list to extract submission scores.
+ */
 const GetSubmissionScoresIntentHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === 'IntentRequest' &&
@@ -687,6 +708,7 @@ exports.handler = skillBuilder
     AssignmentIntentHandler,
     GetAssignmentIntentHandler,
     SubmissionScoresIntentHandler,
+    GetSubmissionScoresIntentHandler,
     HelpIntentHandler,
     CancelAndStopIntentHandler,
     SessionEndedRequestHandler
