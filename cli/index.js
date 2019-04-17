@@ -22,7 +22,7 @@
 
  // install packages
 const axios = require('axios');
-const { Course, Assignment, Announcement, ascii_art } = require('./canvas');
+const { Student, Course, Assignment, Announcement, ascii_art } = require('./canvas');
 const { access_token } = require('./config');
 
 //var access_token = "ACCESS TOKEN GOES HERE" // NEVER, EVER PUSH YOUR ACCESS TOKEN UP TO GITHUB
@@ -339,14 +339,14 @@ const submissionScoresToString = function(assignments) {
  * @param {String} courseID 
  * @param {function} callback 
  */
-const getContentExports = function (courseID,callback) {
+const getContentExports = function (courseID, callback) {
   var result = url + 'courses/' + courseID + '/content_exports';
   return axios.get(result, headerOptions)
     .then(res => {
       log(res.data);
       callback(res.data);
     });
-  }
+}
 
   /**
    * Makes an HTTP GET request to Canvas LMS API.
@@ -355,14 +355,35 @@ const getContentExports = function (courseID,callback) {
    * @param {String} courseID 
    * @param {function} callback 
    */
-  const getUsers = function (courseID,callback) {
+  const getUsers = function (courseID, callback) {
     var result = url + 'courses/' + courseID + '/users' + '?enrollment_type[]=student';
+    log(result);
+    return get(result).then(data => {
+      var students = [];
+      // create student objects
+      data.forEach(obj => {
+        students.push(new Student(obj));
+      });
+      callback(students);
+    });
+  }
 
-    return axios.get(result, headerOptions)
+function get(url, data = []) {
+  return axios.get(url,headerOptions)
     .then(response => {
-      //log(response) //debug
-      log(response.headers)
-      //callback(response);
+      data = data.concat(response.data);
+      // get next data from next link if possible
+      var linklist = response.headers['link'].split(",");
+      var nextLink = linklist.filter((link) => link.split(";")[1].includes("next"));
+      
+      if (nextLink && nextLink.length) {
+        nextLink = nextLink[0].split(";")[0];
+        nextLink = nextLink.substring(1, nextLink.length - 1);
+        log(nextLink);
+        return get(nextLink, data)
+      }else{
+        return data
+      }
     });
 }
 
@@ -428,10 +449,14 @@ getCourses(courses => {
   var courseIDs = mapCourses(courses,'id');
   
   //receive grades for ALL submitted assignments in ALL registered courses.
-  for (var i = 0; i < courseIDs.length; i++) {
-    getAssignments(courseIDs[i], true, tasks => {
-      log(submissionScoresToString(tasks));
-      log('\n');
-    });
-  }
+  // for (var i = 0; i < courseIDs.length; i++) {
+  //   getAssignments(courseIDs[i], true, tasks => {
+  //     log(submissionScoresToString(tasks));
+  //     log('\n');
+  //   });
+  // }
+
+  getUsers(courseIDs[0], res => {
+    log(res);
+  })
 });
