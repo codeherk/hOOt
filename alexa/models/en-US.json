@@ -80,8 +80,25 @@
         },
         {
           "name": "SubmissionScoresIntent",
+          "slots": [
+            {
+              "name": "position",
+              "type": "AMAZON.SearchQuery",
+              "samples": [
+                "{position}",
+                "index {position}"
+              ]
+            }
+          ],
           "samples": [
-            "submission"
+            "submissions",
+            "what are my submission scores",
+            "what are my scores for current submissions",
+            "what are my grades for my current submissions",
+            "what are my assignment scores",
+            "what are my assignment grades",
+            "what are my submission scores in {position}",
+            "what are my assignment scores in {position}"
           ]
         }
       ],
@@ -104,6 +121,22 @@
               }
             }
           ]
+        },
+        {
+          "name": "SubmissionScoresIntent",
+          "confirmationRequired": false,
+          "prompts": {},
+          "slots": [
+            {
+              "name": "position",
+              "type": "AMAZON.SearchQuery",
+              "confirmationRequired": false,
+              "elicitationRequired": true,
+              "prompts": {
+                "elicitation": "Elicit.Intent-SubmissionScoresIntent.IntentSlot-position"
+              }
+            }
+          ]
         }
       ]
     }, 
@@ -116,43 +149,20 @@
             "value": "Tell me what course"
           }
         ]
-      }
-    ]
-<<<<<<< HEAD
-  },
-  "dialog": {
-    "intents": [
+      },
       {
-        "name": "SubmissionScoresIntent",
-        "confirmationRequired": false,
-        "prompts": {},
-        "slots": [
+        "id": "Elicit.Intent-SubmissionScoresIntent.IntentSlot-position",
+        "variations": [
           {
-            "name": "position",
-            "type": "AMAZON.SearchQuery",
-            "confirmationRequired": false,
-            "elicitationRequired": true,
-            "prompts": {
-              "elicitation": "Elicit.Intent-SubmissionScoresIntent.IntentSlot-position"
-            } 
+            "type": "PlainText",
+            "value": "Tell me what course"
+          },
+          {
+            "type": "PlainText",
+            "value": "Which course would you like you submission scores for"
           }
         ]
       }
     ]
-  }, 
-  "prompts": [
-    {
-      "id": "Elicit.Intent-SubmissionScoresIntent.IntentSlot-position",
-      "variations": [
-        {
-          "type": "PlainText",
-          "value": "Which course's grades would you like me to tell you about"
-        }
-      ]
-    }
-  ]
-}
-=======
   }
 }
->>>>>>> bdcbd5c6602ca7fc171dc904d25d4367713aa052

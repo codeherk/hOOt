@@ -186,7 +186,7 @@ const submissionScoresToString = function(assignments) {
       }
     }
   }
-  return 'Your submission scores are as follows: ' + scoresString;
+  return 'your submission scores are as follows: ' + scoresString;
 }
 
 /**
@@ -537,44 +537,61 @@ const GetAssignmentIntentHandler = {
   },
 };
 
-/**
- * Handler for skill's SubmisionScores Intent.
- * Invokes canHandle() to ensure request is an IntentRequest matching SubmissionScoresIntent,
- * and dialog state is IN_PROGRESS.
- * Gets user response and use Levenshtein algo. to 
- * Invokes handle() to handle SubmissionScores request.
- */
 const SubmissionScoresIntentHandler = {
   canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type == 'IntentRequest' &&
-      handlerInput.requestEnvelope.request.intent.name == 'SubmissionScoresIntent' &&
-      handlerInput.requestEnvelope.request.dialogState == 'IN_PROGRESS';
+    return handlerInput.requestEnvelope.request.type === 'IntentRequest' &&
+      handlerInput.requestEnvelope.request.intent.name === 'SubmissionScoresIntent' &&
+      handlerInput.requestEnvelope.request.dialogState === 'STARTED';
   },
   handle(handlerInput) {
-    var requestedCourse = handlerInput.requestEnvelope.request.intent.currentIntent.slots.position.value;
+    const intent = handlerInput.requestEnvelope.request.intent;
 
     return new Promise(resolve => {
-      var bestMatch = ld.FinalWord(requestdCourse, classes);
-      var bestMatchCourseID = bestMatch.object.id;
-      
-      classes = mapCourses(classes,'name');
+      getCourses(courses => {
+        //initial call to this intent will gather courses and save them
+        classes = courses;
+        
+        resolve(handlerInput.responseBuilder
+          .addDelegateDirective(intent)
+          .getResponse()
+        );
+      });
+    });
+  },
+};
 
-      getAssignments(bestMatchCourseID, true, '', tasks => {
-        var question = ' Anything else I can help you with?';
-        var response = submissionScoresToString(tasks);
+const GetSubmissionScoresIntentHandler = {
+  canHandle(handlerInput) {
+    return handlerInput.requestEnvelope.request.type === 'IntentRequest' &&
+      handlerInput.requestEnvelope.request.intent.name === 'SubmissionScoresIntent' &&
+      handlerInput.requestEnvelope.request.dialogState === 'IN_PROGRESS';
+  },
+  handle(handlerInput) {
+    const currentIntent = handlerInput.requestEnvelope.request.intent;
+    var requestedCourse = currentIntent.slots.position.value;
+
+    return new Promise(resolve => {
+      //find the closest match to the user's utterance in classes
+      var bestMatch = ld.FinalWord(requestedCourse, classes);
+      //get ID of course returned as best match
+      var courseID = bestMatch.object.id;
+
+      classes = mapCourses(classes, 'name');
+      getAssignments(courseID, true, '', tasks => {
+        var response =  submissionScoresToString(tasks);
+        var output = `In ${bestMatch,object.name}, ${response}`;
 
         resolve(handlerInput.responseBuilder
-          .speak(response + question)
-          .withSimpleCard(bestMatch.object.name, response)
+          .speak(output)
+          .withSimpleCard(bestMatch.object.name, output)
           .withShouldEndSession(false)
           .getResponse())
       }).catch(error => {
-        resolve(speakError(handlerInput, 'I had trouble getting your assignments. Try again later.', error));
-      })
-    })
-  }
+        resolve(speakError(handlerInput, `I had trouble getting your submission scores. Try again later`, error))
+      });
+    });
+  },
 };
-
 
 /**
  * Handler for skill's Help Intent.
