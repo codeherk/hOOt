@@ -9,6 +9,11 @@ const ascii_art =
 const h2p = require('html2plaintext');
 const moment = require('moment');
 
+function Student(obj) {
+    this.id = obj.id;
+    this.name = obj.name;
+}
+
 /**
  * Represents a single course retrieved by a GET call to the Canvas API
  * @constructor
@@ -58,8 +63,9 @@ function Announcement(obj) {
 }
 
 module.exports = {
+    ascii_art,
+    Student,
     Course,
     Assignment,
-    ascii_art,
     Announcement
 }
