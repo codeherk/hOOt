@@ -179,10 +179,16 @@ const submissionScoresToString = function(assignments) {
       assignmentName = assignments[i].name;
       submissionScore = assignments[i].submission.score;
       pointsPossible = assignments[i].points_possible;
+
       var percent;
       if (submissionScore != null) {
-        percent = (submissionScore / pointsPossible) * 100;
-        scoresString += 'Your score for ', `${assignmentName}`, ' is ', `${percent}`, ' percent. ';
+        percent = ((submissionScore / pointsPossible) * 100);
+        //for readability. found up for scores with decimal points
+        if (percent % 1 != 0) {
+          percent = ((submissionScore / pointsPossible) * 100).toFixed(2);
+        }
+        //scoresString += `Your score for ${assignmentName}, is ${percent} percent. `;
+        scoresString += `Your score for ${assignmentName}, is ${percent} percent. `;
       }
     }
   }
@@ -231,14 +237,14 @@ const getAssignments = function(courseID, includeSubmissions, bucket = 'upcoming
   var requestURL = url + 'courses/' + courseID + '/assignments';
 
   if (includeSubmissions) {
-    request += '?include[]=submission'
+    requestURL += '?include[]=submission'
   }
 
-  if (bucket == 'upcoming') {
-    request += '&bucket=upcoming'
+  if (bucket === 'upcoming') {
+    requestURL += '&bucket=upcoming'
   }
 
-  return axios.get(request, headerOptions)
+  return axios.get(requestURL, headerOptions)
     .then(response => {
       var data = response.data;
       var assignments = [];
@@ -247,7 +253,7 @@ const getAssignments = function(courseID, includeSubmissions, bucket = 'upcoming
       }
       callback(assignments);
     });
-}
+};
 
 /**
  * Create array of Assignments.
@@ -566,7 +572,9 @@ const SubmissionScoresIntentHandler = {
         resolve(handlerInput.responseBuilder
           .addDelegateDirective(intent)
           .getResponse()
-        );
+        )
+      }).catch(error => {
+        resolve(speakError(handlerInput, 'error error', error));
       });
     });
   },
@@ -592,15 +600,15 @@ const GetSubmissionScoresIntentHandler = {
     var requestedCourse = currentIntent.slots.position.value;
 
     return new Promise(resolve => {
-      //find the closest match to the user's utterance in classes
+      // find the closest match to the user's utterance in classes
       var bestMatch = ld.FinalWord(requestedCourse, classes);
       //get ID of course returned as best match
       var courseID = bestMatch.object.id;
 
       classes = mapCourses(classes, 'name');
       getAssignments(courseID, true, '', tasks => {
-        var response =  submissionScoresToString(tasks);
-        var output = `In ${bestMatch,object.name}, ${response}`;
+        var response = submissionScoresToString(tasks);
+        var output = `In ${bestMatch.object.name}, ${response}`;
 
         resolve(handlerInput.responseBuilder
           .speak(output)
@@ -608,7 +616,7 @@ const GetSubmissionScoresIntentHandler = {
           .withShouldEndSession(false)
           .getResponse())
       }).catch(error => {
-        resolve(speakError(handlerInput, `I had trouble getting your submission scores. Try again later`, error))
+        resolve(speakError(handlerInput, 'I had trouble getting your submission scores. Try again later', error))
       });
     });
   },

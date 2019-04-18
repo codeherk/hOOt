@@ -156,10 +156,6 @@
           {
             "type": "PlainText",
             "value": "Tell me what course"
-          },
-          {
-            "type": "PlainText",
-            "value": "Which course would you like you submission scores for"
           }
         ]
       }

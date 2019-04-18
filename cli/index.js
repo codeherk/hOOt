@@ -324,12 +324,16 @@ const submissionScoresToString = function(assignments) {
       pointsPossible = assignments[i].points_possible;
       var percent;
       if (submissionScore != null) {
-        percent = (submissionScore / pointsPossible) * 100;
-        scoresString += 'Your score for ', `${assignmentName}`, ' is ', `${percent}`, ' percent. ';
+        percent = ((submissionScore / pointsPossible) * 100);
+        //for readability. found up for scores with decimal points
+        if (percent % 1 != 0) {
+          percent = ((submissionScore / pointsPossible) * 100).toFixed(2);
+        }
+        scoresString += `Your score for ${assignmentName}, is ${percent} percent. `;
       }
     }
   }
-  return 'Your submission scores are as follows: ' + scoresString;
+  return 'Your submission scores are as follows. ' + scoresString;
 }
 
 /**
