@@ -23,11 +23,12 @@ function Course(obj) {
     this.id = obj.id;
     // format course name
     var name = obj.name;
-    
-    if (name.includes('Spring')) {
-        name = name.split('Spring')[0];
+    var year = moment().year()
+    if (name.includes(year)) {
+        name = name.split(year)[0];
         name = name.split('-')[0];
     }
+
 
     name = name.split('sec')[0];
     if (name.includes('-')) {
