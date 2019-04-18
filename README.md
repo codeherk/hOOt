@@ -1,12 +1,31 @@
-# hooT
+# hOOt
+The hooT system leverages the Canvas LMS API and a variety of Amazon services to provide a hands-free voice user interface for Alexa-enabled devices.
 
-###### The code in this repository was written as a senior capstone project in Computer Science at Temple University during the Spring 2019 semester. The hooT system leverages the Canvas LMS API and a variety of Amazon services to provide a hands-free voice user interface for Alexa-enabled devices. hooT users may use the functions from the project's CLI package to make a variety of HTTP requests to the CANVAS LMS API from the command line.  
+## Motivation
+The code in this repository was contributed by Temple Students specifically for our  senior capstone project in Computer Science at Temple University during the Spring 2019 semester. This idea was initially proposed by **Erik Rosales**.
 
+## Features
+An authenticated user can inquire about:
+* Names of enrolled courses
+* Current grades **(unweighted)**
+* Upcoming Assignments
 
-### With hooT, Canvas LMS users are able to:
-* List courses that they are currently enrolled in.
-* List upcoming and ongoing assignments.
-* List assignment grades for a given course.
-* List course grades.
-* List new announcements in a given course.
-* List new announcements in any course.
+## Technologies Used
+* Canvas API
+* AWS Lambda
+* AWS Cognito
+* NodeJS and the following node modules:
+    * Alexa Skills Kit
+    * Axios
+    * html2plaintext
+    * MomentJS
+
+## Architecture
+![hOOt Architecture](https://drive.google.com/uc?export=view&id=12PC_DFQ7AqUgcBkStzDF5K1Q-yZWW5QU)
+
+## Credits
+* Byron Jenkins
+* Erik Rosales
+* Brendan Connelly
+* Kyle Lee
+* Terrell Nowlin
