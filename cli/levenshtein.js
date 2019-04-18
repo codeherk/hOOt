@@ -581,19 +581,19 @@ var testArr = ['this is a test','This is Also a poop',
 
 var testArray = hootArrayPopulate(testArr);
 
-_db(testArray,true);
+// _db(testArray,true);
 
-var test = new DataAggregate(testphrase, testArray);
+// var test = new DataAggregate(testphrase, testArray);
 
-test.populateMatchData()
-    .populateInputMatch();
+// test.populateMatchData()
+//     .populateInputMatch();
     
-_db(test,true);
+// _db(test,true);
 
-test.trimNonMatch()
-    .primeName();
+// test.trimNonMatch()
+//     .primeName();
 
-_db(test,true);
+// _db(test,true);
 
 //var a = [23,44,55,1,2,4,7,9,];
 //var b = [1,4,5,2,7,55];

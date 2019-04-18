@@ -452,16 +452,16 @@ getTACourses(courses => {
 <<<<<<< HEAD
 });*/
 
-// getCourses(courses => {
-//   var courseIDs = mapCourses(courses,'id');
-//   //receive grades for ALL submitted assignments in ALL registered courses.
-//   for (var i = 0; i < courseIDs.length; i++) {
-//     getAssignments(courseIDs[i], true, tasks => {
-//       log(submissionScoresToString(tasks));
-//       log('\n');
-//     });
-//   }
-// });
+getCourses(courses => {
+  var courseIDs = mapCourses(courses,'id');
+  //receive grades for ALL submitted assignments in ALL registered courses.
+  for (var i = 0; i < courseIDs.length; i++) {
+    getAssignments(courseIDs[i], true, tasks => {
+      log(submissionScoresToString(tasks));
+      log('\n');
+    });
+  }
+});
 
 //##############################################################################################
 //Test begin
@@ -506,6 +506,6 @@ const beginTest = () => {
 
 }//end begin test
 
-beginTest();
+//beginTest();
 
 
