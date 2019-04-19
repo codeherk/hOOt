@@ -67,6 +67,8 @@ function CourseData(obj, phrase){
 function DataAggregate(user, courseArray) {
     this.user_input = prepareUserInput(user);
     this.courseDataArray = prepareCourses(courseArray);
+    this.most_match = 0;
+    this.no_match = false;
 
     this.populateMatchData = () => {
         matchToCourse(this.user_input, this.courseDataArray);
@@ -78,21 +80,47 @@ function DataAggregate(user, courseArray) {
     };
 
     this.trimNonMatch = () => {
+
         for (var i = 0; i<this.courseDataArray.length; i++) {
+            //reference to course in the iteration
             var check = this.courseDataArray[i];
             //if there is no match
-            if( check.match == 0 && check.match_to_input == 0 ) {
+            if ( check.match == 0 && check.match_to_input == 0 ) {
                 //take out that element and shift pointer back to account for array shift
                 this.courseDataArray.splice(i--,1);
-            }//end
+            }//end check for no match
         }//end for
+
+        //if no courses were no matches
+        if (this.courseDataArray.length == 0) {
+            this.no_match = true;
+        }//end check for no matches
+
         return this;
     };
 
     this.primeName = () => {
-        constructPrimePhrase(this.courseDataArray);
+
+        //only do if matches exists
+        if (!this.no_match) {
+            constructPrimePhrase(this.courseDataArray);
+        }//end check for match
+        
         return this;
     };
+
+    this.findMostMatch = () => {
+        var max = Number.MIN_VALUE; 
+        for (var i = 0; i<this.courseDataArray.length; i++) {
+            var check = this.courseDataArray[i];
+            //check to see longest matches.
+            if (check.primeIndex.length > max ) {
+                max = check.primeIndex.length;
+                this.most_match = check.primeIndex.length;
+            }//end check for max matches
+        }//end for
+        return this;
+    }; 
 
     this.populateDistanceData = () => {
         return this;
@@ -581,19 +609,21 @@ var testArr = ['this is a test','This is Also a poop',
 
 var testArray = hootArrayPopulate(testArr);
 
-// _db(testArray,true);
+_db(testArray,false);
 
-// var test = new DataAggregate(testphrase, testArray);
+var test = new DataAggregate(testphrase, testArray);
 
-// test.populateMatchData()
-//     .populateInputMatch();
+test.populateMatchData()
+    .populateInputMatch();
     
-// _db(test,true);
+_db(test,false);
 
-// test.trimNonMatch()
-//     .primeName();
+test.trimNonMatch()
+    .primeName()
+    .findMostMatch();
 
-// _db(test,true);
+_db(test,false);
+_db(test.most_match,false);
 
 //var a = [23,44,55,1,2,4,7,9,];
 //var b = [1,4,5,2,7,55];

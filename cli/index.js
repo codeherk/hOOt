@@ -419,13 +419,6 @@ const getContentExports = function (courseID,callback) {
   log("Could not get courses. " + error, red);
 });
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-
-=======
->>>>>>> codeherk
->>>>>>> c65114be02680000bbf2ea7bc09903288bd5561d
 getTACourses(courses => {
   //var courseIDs = formatCourses(courses,'id');
   var courseIDs = mapCourses(courses,'id');
@@ -449,19 +442,18 @@ getTACourses(courses => {
   // });
 }).catch(error => {
   log("Could not get courses. " + error, red);
-<<<<<<< HEAD
 });*/
 
-getCourses(courses => {
-  var courseIDs = mapCourses(courses,'id');
-  //receive grades for ALL submitted assignments in ALL registered courses.
-  for (var i = 0; i < courseIDs.length; i++) {
-    getAssignments(courseIDs[i], true, tasks => {
-      log(submissionScoresToString(tasks));
-      log('\n');
-    });
-  }
-});
+// getCourses(courses => {
+//   var courseIDs = mapCourses(courses,'id');
+//   //receive grades for ALL submitted assignments in ALL registered courses.
+//   for (var i = 0; i < courseIDs.length; i++) {
+//     getAssignments(courseIDs[i], true, tasks => {
+//       log(submissionScoresToString(tasks));
+//       log('\n');
+//     });
+//   }
+// });
 
 //##############################################################################################
 //Test begin
@@ -473,19 +465,22 @@ test_phrase = ['The Good','good Life','Common Good',
 
 const beginTest = () => {
 
+  log('1');
+
   getCourses(courses => {
 
+    log('2');
     var courseIDs = mapCourses(courses,'id');
     var courseNames = mapCourses(courses, 'name');
   
     var enrolled = [];
-  
+    log('3');
     for (let i = 0; i<courses.length; i++) {
       
       enrolled.push(new Course(courses[i]));
   
     }//end
-  
+    log('4');
     //log(enrolled);
     for (let i = 0; i<test_phrase.length; i++) {
   
@@ -506,6 +501,26 @@ const beginTest = () => {
 
 }//end begin test
 
-//beginTest();
+beginTest();
+
+const nest_test = () => {
+
+  getCourses(courses => {
+
+    var courseIDs = mapCourses(courses,'id');
+    var courseNames = mapCourses(courses, 'name');
+
+    getUpcomingAssignments(courseIDs[0],tasks => {
+
+      log(formatAssignments(tasks))
+    }).catch(error => {
+    log("Could not get assignments. " + error, red);
+
+    });
+
+  });
+
+}//end nest test
 
 
+//nest_test();
