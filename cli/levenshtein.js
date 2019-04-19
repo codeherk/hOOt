@@ -68,6 +68,7 @@ function DataAggregate(user, courseArray) {
     this.user_input = prepareUserInput(user);
     this.courseDataArray = prepareCourses(courseArray);
     this.most_match = 0;
+    this.penalty = 0;
     this.no_match = false;
 
     this.populateMatchData = () => {
@@ -103,7 +104,7 @@ function DataAggregate(user, courseArray) {
 
         //only do if matches exists
         if (!this.no_match) {
-            constructPrimePhrase(this.courseDataArray);
+            this.penalty = constructPrimePhrase(this.courseDataArray);
         }//end check for match
         
         return this;
@@ -123,6 +124,7 @@ function DataAggregate(user, courseArray) {
     }; 
 
     this.populateDistanceData = () => {
+        calculateDistance(this.user_input, this.courseDataArray, this.most_match, this.penalty);
         return this;
     };
 
@@ -504,14 +506,41 @@ var matchToPhrase = (userPhrase, courseList) => {
  */
 var constructPrimePhrase = (courseList) => {
 
+    var penalty = 0;
+    var numOfWords = 0;
+
     for(var i = 0; i < courseList.length; i++) {
         
         courseList[i].primeIndex = setUnion(courseList[i].match_position, courseList[i].match_input_position);
         courseList[i].namePrime = constructPhrase(courseList[i].words, courseList[i].primeIndex);
 
+        penalty += courseList[i].namePrime.length - courseList[i].primeIndex.length - 1;
+        numOfWords += courseList[i].primeIndex.length;
+
     }//end
 
+    return penalty/numOfWords;
+
 }//end constructPrimePhrase
+
+var calculateDistance = (userPhrase, courseList, maxMatch, penalty) => {
+
+    //iterate through list of courses
+    for (var i = 0; i < courseList.length; i++ ) {
+     
+        var levenValue = levenshtein(userPhrase.input, courseList[i].namePrime);
+        courseList[i].distance += levenValue;
+        //check to see if there are correct number of matches if not add penalty score
+        if (courseList[i].primeIndex.length < maxMatch) {
+
+            //add to distance score the penalty value times number of unmatched words
+            courseList[i].distance += (maxMatch - courseList[i].primeIndex.length)*penalty;
+
+        }// end penalty check
+
+    }//end
+
+}//end calculateDistance
 
 /* *************************************************************************************
  * ******************End Functions used by [] and FinalWord*****************************
@@ -602,10 +631,10 @@ var hootArrayPopulate = (arr) => {
 
 //########################test##########################################
 
-var testphrase = 'hello poop world is con controlled';
-var testArr = ['this is a test','This is Also a poop',
-                'Piss off','I like Big','Gold Experience',
-                'Pussy Control','Finger Prince'];
+var testphrase = 'common good';
+var testArr = ['projects in computer science','Basic Concepts in Math','Probability Theory I',
+                'Physics 1068','IH: The Good Life','IH: The common good','Phys 1068 Lab',
+                'Intro to Modern Algebra'];
 
 var testArray = hootArrayPopulate(testArr);
 
@@ -614,16 +643,14 @@ _db(testArray,false);
 var test = new DataAggregate(testphrase, testArray);
 
 test.populateMatchData()
-    .populateInputMatch();
-    
-_db(test,false);
-
-test.trimNonMatch()
+    .populateInputMatch()
+    .trimNonMatch()
     .primeName()
-    .findMostMatch();
+    .findMostMatch()
+    .populateDistanceData();
 
-_db(test,false);
-_db(test.most_match,false);
+_db(test,true);
+//_db(test.most_match,true);
 
 //var a = [23,44,55,1,2,4,7,9,];
 //var b = [1,4,5,2,7,55];
