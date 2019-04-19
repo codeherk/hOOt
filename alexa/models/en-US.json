@@ -64,6 +64,12 @@
             "what assignments do I have coming up",
             "what homework do I have",
             "what do I need to do",
+            "What assignments do I have for {position}",
+            "What are my assignments for {position}",
+            "What homework do I have for {position}",
+            "What are my homework for {position}",
+            "Assignments for {position}",
+            "Homework for {position}",
             "what do I need to do for my {position} class"
           ]
         },

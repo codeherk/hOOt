@@ -24,6 +24,7 @@
 const axios = require('axios');
 const { Course, Assignment, Announcement, ascii_art } = require('./canvas');
 const { access_token } = require('./config');
+const ld = require('./levenshtein');
 
 //var access_token = "ACCESS TOKEN GOES HERE" // NEVER, EVER PUSH YOUR ACCESS TOKEN UP TO GITHUB
 
@@ -374,7 +375,7 @@ const getContentExports = function (courseID,callback) {
 /******************************* END OF FUNCTION DECLARATIONS *******************************/
 /********************************************************************************************/
 
-log(ascii_art);
+//log(ascii_art);
 
 /*getCourses(courses => {
 
@@ -439,3 +440,5 @@ getCourses(courses => {
     });
   }
 });
+
+

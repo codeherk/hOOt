@@ -466,14 +466,45 @@ const AssignmentIntentHandler = {
   },
   handle(handlerInput) {
     const intent = handlerInput.requestEnvelope.request.intent;
+    var requestedCourse = intent.slots.position.value;
     return new Promise(resolve => {
       getCourses(courses => {
         classes = courses;
-        // classes = courses.filter((course) => !ignoreCourses.includes(course.name)); 
+
+        if (!requestedCourse) {
+          // classes = courses.filter((course) => !ignoreCourses.includes(course.name)); 
         resolve(handlerInput.responseBuilder
           .addDelegateDirective(intent)
           .getResponse()
         );
+        } else {
+
+          var bestMatch = ld.FinalWord(requestedCourse, classes); // return course id
+          var courseID = bestMatch.object.id;
+
+          getUpcomingAssignments(courseID, tasks => {
+            var list = formatAssignments(tasks);
+            var output = (list === undefined || list.length == 0) ? 'there are no upcoming assignments' : list[0];
+            output = `For ${bestMatch.object.name}, ${output}`;
+            // var output;
+            // if(tasks.length == 0){
+            //   output = 'March 25th, 2019, 11:59pm';
+            // }else{
+            //   output = tasks[0].name;
+            // }
+            resolve(handlerInput.responseBuilder
+                .speak(output)
+                .withSimpleCard(bestMatch.object.name, output)
+                .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
+                .getResponse()
+            )
+          }).catch(error => {
+            resolve(speakError(handlerInput,`I had trouble getting your assignments. Try again later.`, error));
+          });
+
+        }
+
+        
       });
     }).catch(error => {
       resolve(handlerInput.responseBuilder
