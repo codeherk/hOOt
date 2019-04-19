@@ -16,7 +16,7 @@
 
 const Alexa = require('ask-sdk-core');
 const axios = require('axios');
-const { Course, Assignment } = require('./canvas');
+const { Student, Course, Assignment } = require('./canvas');
 //Helper Function for calling the Cognito /oauth2/userInfo to get user info using the accesstoken
 const https = require('https');
 const ld = require('./levenshtein');
@@ -208,6 +208,58 @@ const formatAssignments = function (tasks){
     list.push(detail);
   }
   return list;
+}
+
+/**
+ * Makes an HTTP GET request to Canvas LMS API.
+ * Receives response from API containing list of all students enrolled in a course with the given Course ID.
+ * Calls callback function, passing in response as param. 
+ * @param {String} courseID 
+ * @param {function} callback 
+*/
+const getUsers = function (courseID, callback) {
+  var result = url + 'courses/' + courseID + '/users' + '?enrollment_type[]=student';
+  return get(result).then(data => {
+    var students = [];
+    // create student objects
+    data.forEach(obj => {
+      students.push(new Student(obj));
+    });
+    callback(students);
+  });
+}
+
+function get(url, data = []) {
+  return axios.get(url,headerOptions)
+    .then(response => {
+      data = data.concat(response.data);
+      // get next data from next link if possible
+      var linklist = response.headers['link'].split(",");
+      var nextLink = linklist.filter((link) => link.split(";")[1].includes("next"));
+      
+      if (nextLink && nextLink.length) {
+        nextLink = nextLink[0].split(";")[0];
+        nextLink = nextLink.substring(1, nextLink.length - 1);
+        return get(nextLink, data)
+      }else{
+        return data
+      }
+    });
+}
+
+function formatStudents(students,by = 'full'){
+  var string = '';
+  let i = 0;
+  if(by == 'first'){
+    students = students.map(student => student.name.split(' ')[0]);
+  }else{
+    students = students.map(student => student.name);
+  }
+  for (; i < students.length - 1; i++) {
+    string += `${students[i]}, `;
+  }
+  string += `and ${students[i]}.`;
+  return string;
 }
 
 // https is a default part of Node.JS.  Read the developer doc:  https://nodejs.org/api/https.html
@@ -477,6 +529,50 @@ const GetAssignmentIntentHandler = {
   },
 };
 
+const CourseStudentsIntentHandler = {
+  canHandle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request;
+    return request.type === 'IntentRequest' &&
+      request.intent.name === 'CourseStudentsIntent';
+  },
+  handle(handlerInput) {
+    const currentIntent = handlerInput.requestEnvelope.request.intent;
+    var requestedCourse = currentIntent.slots.position.value;
+    console.log(`Requested Course: ${requestedCourse}`);
+    return new Promise(resolve => {
+      getCourses(courses => {
+        if(requestedCourse == null){
+          resolve(handlerInput.responseBuilder
+            .addDelegateDirective(currentIntent)
+            .getResponse()
+          );
+        }else{
+          //compare requestedCourse with course array
+          var bestMatch = ld.FinalWord(requestedCourse, courses); // return course id
+          var courseID = bestMatch.object.id;
+          
+          //classes = mapCourses(classes,'name');
+          getUsers(courseID, students => {
+            var list = formatStudents(students);
+            //var output = `There are ${students.length} enrolled in ${bestMatch.object.name}: ${list}`;
+            console.log(list);
+            resolve(handlerInput.responseBuilder
+              .speak(list)
+              .withSimpleCard(bestMatch.object.name, list)
+              .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
+              .getResponse()
+              )
+          }).catch(error => {
+            resolve(speakError(handlerInput,`I had trouble getting the list of students. Try again later.`, error));
+          });
+        }
+      }).catch(error => {
+        resolve(speakError(handlerInput,`I had trouble getting the list of courses. Try again later.`, error));
+      });
+    }); 
+  },
+};
+
 /**
  * Handler for skill's Help Intent.
  * Invokes canHandle() to ensure request is an IntentRequest
@@ -570,6 +666,7 @@ exports.handler = skillBuilder
     TACoursesIntentHandler,
     AssignmentIntentHandler,
     GetAssignmentIntentHandler,
+    CourseStudentsIntentHandler,
     HelpIntentHandler,
     CancelAndStopIntentHandler,
     SessionEndedRequestHandler
