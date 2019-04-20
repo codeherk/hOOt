@@ -392,19 +392,19 @@ const CoursesIntentHandler = {
       handlerInput.requestEnvelope.request.intent.name === 'CoursesIntent';
   },
   handle(handlerInput) {
+    // retrieve courses from session attributes
+    const attributes = handlerInput.attributesManager.getSessionAttributes();
+    const courses = attributes.courses
+
     return new Promise(resolve => {
-      getCourses(courses => {
-        var question = ' Anything else I can help you with?';
-        var speechText = 'You are currently enrolled in: ' + coursesToString(courses);
-        resolve(handlerInput.responseBuilder
-          .speak(speechText + question)
-          .withStandardCard("Enrolled Courses", speechText, smallImgUrl, largeImgUrl)
-          .withShouldEndSession(false)
-          .getResponse()          
-        );
-      }).catch(error => {
-        resolve(speakError(handlerInput,'I am having a little trouble getting your current courses. Try again later.', error));
-      });
+      var question = ' Anything else I can help you with?';
+      var speechText = 'You are currently enrolled in: ' + coursesToString(courses);
+      resolve(handlerInput.responseBuilder
+        .speak(speechText + question)
+        .withStandardCard("Enrolled Courses", speechText, smallImgUrl, largeImgUrl)
+        .withShouldEndSession(false)
+        .getResponse()          
+      );
     });
   }
 };
@@ -445,20 +445,20 @@ const CourseScoresIntentHandler = {
       handlerInput.requestEnvelope.request.intent.name === 'CourseScoresIntent';
   },
   handle(handlerInput) {
+    // retrieve courses from session attributes
+    const attributes = handlerInput.attributesManager.getSessionAttributes();
+    const courses = attributes.courses
+
     return new Promise(resolve => {
-      getCourses(courses => {
-        //courses = courses.filter((course) => !ignoreCourses.includes(course.name)); 
-        var question = ' Anything else I can help you with?';
-        var speechText = 'Your current grades are as follows: ' + courseGradesToString(courses);
-        resolve(handlerInput.responseBuilder
-          .speak(speechText + question)
-          .withStandardCard("Enrolled Courses", speechText, smallImgUrl, largeImgUrl)
-          .withShouldEndSession(false)
-          .getResponse()
-        );
-      }).catch(error => {
-        resolve(speakError(handlerInput,'I am having a little trouble getting your current courses. Try again later.', error));
-      });
+      //courses = courses.filter((course) => !ignoreCourses.includes(course.name)); 
+      var question = ' Anything else I can help you with?';
+      var speechText = 'Your current grades are as follows: ' + courseGradesToString(courses);
+      resolve(handlerInput.responseBuilder
+        .speak(speechText + question)
+        .withStandardCard("Enrolled Courses", speechText, smallImgUrl, largeImgUrl)
+        .withShouldEndSession(false)
+        .getResponse()
+      );
     });
   }
 };
@@ -494,10 +494,6 @@ const AssignmentIntentHandler = {
         .getResponse()
       );
     });
-    // const intent = handlerInput.requestEnvelope.request.intent;
-    //    return handlerInput.responseBuilder
-    //           .addDelegateDirective(intent)
-    //           .getResponse();
   },
 };
 
@@ -513,8 +509,6 @@ const GetAssignmentIntentHandler = {
     const currentIntent = handlerInput.requestEnvelope.request.intent;       
     var requestedCourse = currentIntent.slots.position.value;
     //var index = position - 1;
-
-    
 
     return new Promise(resolve => {
       //compare requestedCourse with course array
@@ -710,4 +704,3 @@ exports.handler = skillBuilder
   )
   .addErrorHandlers(ErrorHandler)
   .lambda();
-  
