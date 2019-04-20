@@ -247,7 +247,7 @@ function get(url, data = []) {
     });
 }
 
-function formatStudents(students,by = 'full'){
+function formatStudents(students, by = 'full'){
   var string = '';
   let i = 0;
   if(by == 'first'){
@@ -260,6 +260,29 @@ function formatStudents(students,by = 'full'){
   }
   string += `and ${students[i]}.`;
   return string;
+}
+
+function listStudents(handlerInput, requestedCourse, courses){
+  //console.log(`Inside list students. courses: ${courses}`);
+  //compare requestedCourse with course array
+  var bestMatch = ld.FinalWord(requestedCourse, courses); // return course id
+  console.log(`Best match for ${requestedCourse}: ${bestMatch.object.id} ,${bestMatch.object.name}`)
+  var courseID = bestMatch.object.id;
+  
+  return new Promise(resolve => {
+    getUsers(courseID, students => {
+      var list = formatStudents(students);
+      var output = `A total of ${students.length} are enrolled in ${bestMatch.object.name}: ${list}`;
+      console.log(`list of students: ${list}`);
+      resolve(handlerInput.responseBuilder
+        .speak(output)
+        .withSimpleCard(bestMatch.object.name, "list")
+        .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
+        .getResponse())
+    }).catch(error => {
+       resolve(speakError(handlerInput,`I had trouble getting the list of students. Try again later.`, error));
+    });
+  });
 }
 
 // https is a default part of Node.JS.  Read the developer doc:  https://nodejs.org/api/https.html
@@ -321,31 +344,34 @@ const LaunchRequestHandler = {
         // try to get info about user. 
         try {
           var tokenOptions = buildHttpGetOptions(alexa_access_token);
-          console.log(`aat: ${alexa_access_token}`); // access token granted from amazon cognito
+          //console.log(`aat: ${alexa_access_token}`); // access token granted from amazon cognito
 
           // make a call to get user attributes
           httpGet(tokenOptions, response => {
-            console.log(response.data);
-            console.log(response.data.zoneinfo);
-            
+            //console.log(response.data);
+            //console.log(response.data.zoneinfo);
+
             const sessionAttributes = handlerInput.attributesManager.getSessionAttributes(); // get session attributes
             sessionAttributes.access_token = response.data.zoneinfo; // store access token in session
             setHeaderOptions(response.data.zoneinfo);
-            handlerInput.attributesManager.setSessionAttributes(sessionAttributes); // save session attributes
             
-            resolve(handlerInput.responseBuilder
-              .speak(speechText)
-              .reprompt(speechText)
-              .withSimpleCard('hOOt for Canvas', speechText)
-              .getResponse());
+            getCourses(courses => {
+              sessionAttributes.courses = courses
+              handlerInput.attributesManager.setSessionAttributes(sessionAttributes); // save session attributes
+              resolve(handlerInput.responseBuilder
+                .speak(speechText)
+                .reprompt(speechText)
+                .withSimpleCard('hOOt for Canvas', speechText)
+                .getResponse());
+            }).catch(error => {
+              resolve(speakError(handlerInput,"I had trouble getting your courses. Please try again later.",error));
+            });
 
           }).catch(error => {
-            console.log(`ERROR: ${error}`);
             resolve(speakError(handlerInput,"I had trouble getting access to canvas.",error));
           });
           
         }catch(error) {
-          console.log(`Error message: ${error.message}`);
           resolve(speakError(handlerInput,"I had trouble getting access to canvas. Try again later.",error));
         }
       });
@@ -533,42 +559,52 @@ const CourseStudentsIntentHandler = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request;
     return request.type === 'IntentRequest' &&
-      request.intent.name === 'CourseStudentsIntent';
+      request.intent.name === 'CourseStudentsIntent' &&
+      request.dialogState === 'STARTED';
   },
   handle(handlerInput) {
     const currentIntent = handlerInput.requestEnvelope.request.intent;
     var requestedCourse = currentIntent.slots.position.value;
+    
+    const attributes = handlerInput.attributesManager.getSessionAttributes();
+    const courses = attributes.courses;
     console.log(`Requested Course: ${requestedCourse}`);
+
     return new Promise(resolve => {
-      getCourses(courses => {
-        if(requestedCourse == null){
-          resolve(handlerInput.responseBuilder
-            .addDelegateDirective(currentIntent)
-            .getResponse()
-          );
-        }else{
-          //compare requestedCourse with course array
-          var bestMatch = ld.FinalWord(requestedCourse, courses); // return course id
-          var courseID = bestMatch.object.id;
-          
-          //classes = mapCourses(classes,'name');
-          getUsers(courseID, students => {
-            var list = formatStudents(students);
-            //var output = `There are ${students.length} enrolled in ${bestMatch.object.name}: ${list}`;
-            console.log(list);
-            resolve(handlerInput.responseBuilder
-              .speak(list)
-              .withSimpleCard(bestMatch.object.name, list)
-              .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
-              .getResponse()
-              )
-          }).catch(error => {
-            resolve(speakError(handlerInput,`I had trouble getting the list of students. Try again later.`, error));
-          });
-        }
-      }).catch(error => {
-        resolve(speakError(handlerInput,`I had trouble getting the list of courses. Try again later.`, error));
-      });
+      if(requestedCourse === undefined){
+        resolve(handlerInput.responseBuilder
+          .addDelegateDirective(currentIntent)
+          .getResponse()
+        );
+      }else{
+        resolve(
+          listStudents(handlerInput,requestedCourse,courses)
+        );
+      }
+    }); 
+  },
+};
+
+const GetStudentsIntentHandler = {
+  canHandle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request;
+    return request.type === 'IntentRequest' &&
+      request.intent.name === 'CourseStudentsIntent' &&
+      request.dialogState === 'IN_PROGRESS';
+  },
+  handle(handlerInput) {
+    const currentIntent = handlerInput.requestEnvelope.request.intent;
+    var requestedCourse = currentIntent.slots.position.value;
+    const attributes = handlerInput.attributesManager.getSessionAttributes();
+    const courses = attributes.courses;
+
+    console.log(`courses in attributes: ${attributes.courses}`);
+    console.log(`Requested: ${requestedCourse}`);
+
+    return new Promise(resolve => {
+      resolve(
+        listStudents(handlerInput,requestedCourse,courses)
+      );
     }); 
   },
 };
@@ -667,23 +703,11 @@ exports.handler = skillBuilder
     AssignmentIntentHandler,
     GetAssignmentIntentHandler,
     CourseStudentsIntentHandler,
+    GetStudentsIntentHandler,
     HelpIntentHandler,
     CancelAndStopIntentHandler,
     SessionEndedRequestHandler
   )
   .addErrorHandlers(ErrorHandler)
   .lambda();
-
-
-// {
-//   "name": "AssignmentsIntent",
-//   "slots": [
-//     {
-//       "name": "className",
-//       "type": ""
-//     }
-//   ],
-//   "samples": [
-//     "What assignment do i have for {className}"
-//   ]
-// }
+  
