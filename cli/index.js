@@ -370,6 +370,34 @@ const getContentExports = function (courseID,callback) {
     });
 }
 
+const postPlannerNote = function(title, details, toDoDate, callback) {
+  var plannerURL = url + 'planner_notes?' + 'access_token=' + access_token + '&title=' + title + '&details=' + details + '&todo_date=' + toDoDate;
+  //var plannerURL = 'https://templeu.instructure.com/api/v1/planner_notes?access_token=' + access_token + '&title=A new planner note&details=the details to this planner note&todo_date=2019-04-25';
+
+  return axios.post(plannerURL)
+  .then(response => {
+    var data = response.data;
+    callback(data);
+  }).catch(error => {
+    log(error);
+  });
+}
+
+const months = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+const plannerResponseToString = function(response) {
+  var title = response.title;
+  var details = response.details;
+  var toDoDate = response.todo_date;
+  var year = toDoDate.substring(0,4);
+  var month = toDoDate.substring(5,7);
+  var day = toDoDate.substring(8,10);
+  return `Your calendar event titled, ${title}, has been successfully posted for ${months[month - 1]}, ${day}th, ${year}.`;
+}
+
 /********************************************************************************************/
 /******************************* END OF FUNCTION DECLARATIONS *******************************/
 /********************************************************************************************/
@@ -428,7 +456,7 @@ getTACourses(courses => {
   log("Could not get courses. " + error, red);
 });*/
 
-getCourses(courses => {
+/*getCourses(courses => {
   var courseIDs = mapCourses(courses,'id');
   
   //receive grades for ALL submitted assignments in ALL registered courses.
@@ -438,4 +466,14 @@ getCourses(courses => {
       log('\n');
     });
   }
+});*/
+
+postPlannerNote('A new planner note', 'the details to this planner note', '2019-04-25', response => {
+  /*if (response.errors != null) {
+    log('errors');
+  } else {
+    log(response);
+  }*/
+
+  log(plannerResponseToString(response));
 });
