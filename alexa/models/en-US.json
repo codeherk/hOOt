@@ -74,6 +74,28 @@
           ]
         },
         {
+          "name": "CourseStudentsIntent",
+          "slots": [
+            {
+              "name": "position",
+              "type": "AMAZON.SearchQuery",
+              "samples": [
+                "{position}",
+                "index {position}"
+              ]
+            }
+          ],
+          "samples": [
+            "How many students are in my class",
+            "what students are taking {position}",
+            "what students are taking {position} class",
+            "how many students are taking {position} class",
+            "how many students are in {position}",
+            "who is in {position}",
+            "who am I taking {position} with"
+          ]
+        },
+        {
           "name": "AnnouncementIntent",
           "samples": [
             "announcements",
@@ -143,6 +165,22 @@
               }
             }
           ]
+        },
+        {
+          "name": "CourseStudentsIntent",
+          "confirmationRequired": false,
+          "prompts": {},
+          "slots": [
+            {
+              "name": "position",
+              "type": "AMAZON.SearchQuery",
+              "confirmationRequired": false,
+              "elicitationRequired": true,
+              "prompts": {
+                "elicitation": "Elicit.Intent-CourseStudentsIntent.IntentSlot-position"
+              }
+            }
+          ]
         }
       ]
     }, 
@@ -158,6 +196,15 @@
       },
       {
         "id": "Elicit.Intent-SubmissionScoresIntent.IntentSlot-position",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "Tell me what course"
+          }
+        ]
+      },
+      {
+        "id": "Elicit.Intent-CourseStudentsIntent.IntentSlot-position",
         "variations": [
           {
             "type": "PlainText",
