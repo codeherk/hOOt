@@ -188,7 +188,7 @@ const submissionScoresToString = function(assignments) {
           percent = ((submissionScore / pointsPossible) * 100).toFixed(2);
         }
         //scoresString += `Your score for ${assignmentName}, is ${percent} percent. `;
-        scoresString += `Your score for ${assignmentName}, is ${percent} percent. `;
+        scoresString += `${assignmentName}, ${percent} percent. `;
       }
     }
   }
@@ -544,7 +544,7 @@ const AssignmentIntentHandler = {
   },
   handle(handlerInput) {
     const intent = handlerInput.requestEnvelope.request.intent;
-    var requestedCourse = intent.slots.position.value;
+    var requestedCourse = intent.slots.course.value;
     
     // retrieve courses from session attributes
     const attributes = handlerInput.attributesManager.getSessionAttributes();
@@ -597,7 +597,7 @@ const GetAssignmentIntentHandler = {
   },
   handle(handlerInput) {
     const currentIntent = handlerInput.requestEnvelope.request.intent;       
-    var requestedCourse = currentIntent.slots.position.value;
+    var requestedCourse = currentIntent.slots.course.value;
     // retrieve courses from session attributes
     const attributes = handlerInput.attributesManager.getSessionAttributes();
     const courses = attributes.courses
@@ -609,21 +609,14 @@ const GetAssignmentIntentHandler = {
        * bestMatch.object.{.name, .id, .position, .match, .distance}
        * bestMatch.status = {100 = good, 401 = null array}
        */
-      
       var courseID = bestMatch.object.id;
 
       //var courseIDs = mapCourses(classes,'id');
-      classes = mapCourses(classes,'name');
+      //classes = mapCourses(classes,'name');
       getUpcomingAssignments(courseID, tasks => {
         var list = formatAssignments(tasks);
         var output = (list === undefined || list.length == 0) ? 'there are no upcoming assignments' : list[0];
         output = `For ${bestMatch.object.name}, ${output}`;
-        // var output;
-        // if(tasks.length == 0){
-        //   output = 'March 25th, 2019, 11:59pm';
-        // }else{
-        //   output = tasks[0].name;
-        // }
         resolve(handlerInput.responseBuilder
             .speak(output)
             .withSimpleCard(bestMatch.object.name, output)
@@ -632,6 +625,74 @@ const GetAssignmentIntentHandler = {
         )
       }).catch(error => {
         resolve(speakError(handlerInput,`I had trouble getting your assignments. Try again later.`, error));
+      });
+    });
+  },
+};
+
+/**
+ * Receive initial user input.
+ * Get list of user's classes based on access token in use.
+ * Save courseList to object.
+ */
+const SubmissionScoresIntentHandler = {
+  canHandle(handlerInput) {
+    return handlerInput.requestEnvelope.request.type === 'IntentRequest' &&
+      handlerInput.requestEnvelope.request.intent.name === 'SubmissionScoresIntent' &&
+      handlerInput.requestEnvelope.request.dialogState === 'STARTED';
+  },
+  handle(handlerInput) {
+    const intent = handlerInput.requestEnvelope.request.intent;
+
+    return new Promise(resolve => {
+      resolve(handlerInput.responseBuilder
+        .addDelegateDirective(intent)
+        .getResponse()
+      )
+    });
+  },
+};
+
+/**
+ * Handler for skills getSubmissionScores Intent.
+ * Invokes canHandle() to ensure request is an IntentRequest,
+ * matching the declared SubmissionScores Intent,
+ * and that the status of the dialogState is 'IN_PROGRESS'.
+ * Invokes handle() to fetch list of assignments for the best match to the user's
+ * initially vocalized course, 
+ * and use that assignment list to extract submission scores.
+ */
+const GetSubmissionScoresIntentHandler = {
+  canHandle(handlerInput) {
+    return handlerInput.requestEnvelope.request.type === 'IntentRequest' &&
+      handlerInput.requestEnvelope.request.intent.name === 'SubmissionScoresIntent' &&
+      handlerInput.requestEnvelope.request.dialogState === 'IN_PROGRESS';
+  },
+  handle(handlerInput) {
+    const currentIntent = handlerInput.requestEnvelope.request.intent;
+    var requestedCourse = currentIntent.slots.course.value;
+
+    const attributes = handlerInput.attributesManager.getSessionAttributes();
+    const courses = attributes.courses
+
+    return new Promise(resolve => {
+      // find the closest match to the user's utterance in classes
+      var bestMatch = ld.FinalWord(requestedCourse, courses);
+      //get ID of course returned as best match
+      var courseID = bestMatch.object.id;
+
+      //var classes = mapCourses(classes, 'name');
+      getAssignments(courseID, true, '', tasks => {
+        var response = submissionScoresToString(tasks);
+        var output = `In ${bestMatch.object.name}, ${response}`;
+
+        resolve(handlerInput.responseBuilder
+          .speak(output)
+          .withSimpleCard(bestMatch.object.name, output)
+          .withShouldEndSession(false)
+          .getResponse())
+      }).catch(error => {
+        resolve(speakError(handlerInput, 'I had trouble getting your submission scores. Try again later', error))
       });
     });
   },
@@ -646,7 +707,7 @@ const CourseStudentsIntentHandler = {
   },
   handle(handlerInput) {
     const currentIntent = handlerInput.requestEnvelope.request.intent;
-    var requestedCourse = currentIntent.slots.position.value;
+    var requestedCourse = currentIntent.slots.course.value;
     
     const attributes = handlerInput.attributesManager.getSessionAttributes();
     const courses = attributes.courses;
@@ -676,7 +737,8 @@ const GetStudentsIntentHandler = {
   },
   handle(handlerInput) {
     const currentIntent = handlerInput.requestEnvelope.request.intent;
-    var requestedCourse = currentIntent.slots.position.value;
+    var requestedCourse = currentIntent.slots.course.value;
+
     const attributes = handlerInput.attributesManager.getSessionAttributes();
     const courses = attributes.courses;
 
@@ -688,78 +750,6 @@ const GetStudentsIntentHandler = {
         listStudents(handlerInput,requestedCourse,courses)
       );
     }); 
-  },
-};
-
-/**
- * Receive initial user input.
- * Get list of user's classes based on access token in use.
- * Save courseList to object.
- */
-const SubmissionScoresIntentHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest' &&
-      handlerInput.requestEnvelope.request.intent.name === 'SubmissionScoresIntent' &&
-      handlerInput.requestEnvelope.request.dialogState === 'STARTED';
-  },
-  handle(handlerInput) {
-    const intent = handlerInput.requestEnvelope.request.intent;
-
-    return new Promise(resolve => {
-      getCourses(courses => {
-        //initial call to this intent will gather courses and save them
-        classes = courses;
-        
-        resolve(handlerInput.responseBuilder
-          .addDelegateDirective(intent)
-          .getResponse()
-        )
-      }).catch(error => {
-        resolve(speakError(handlerInput, 'error error', error));
-      });
-    });
-  },
-};
-
-/**
- * Handler for skills getSubmissionScores Intent.
- * Invokes canHandle() to ensure request is an IntentRequest,
- * matching the declared SubmissionScores Intent,
- * and that the status of the dialogState is 'IN_PROGRESS'.
- * Invokes handle() to fetch list of assignments for the best match to the user's
- * initially vocalized course, 
- * and use that assignment list to extract submission scores.
- */
-const GetSubmissionScoresIntentHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest' &&
-      handlerInput.requestEnvelope.request.intent.name === 'SubmissionScoresIntent' &&
-      handlerInput.requestEnvelope.request.dialogState === 'IN_PROGRESS';
-  },
-  handle(handlerInput) {
-    const currentIntent = handlerInput.requestEnvelope.request.intent;
-    var requestedCourse = currentIntent.slots.position.value;
-
-    return new Promise(resolve => {
-      // find the closest match to the user's utterance in classes
-      var bestMatch = ld.FinalWord(requestedCourse, classes);
-      //get ID of course returned as best match
-      var courseID = bestMatch.object.id;
-
-      classes = mapCourses(classes, 'name');
-      getAssignments(courseID, true, '', tasks => {
-        var response = submissionScoresToString(tasks);
-        var output = `In ${bestMatch.object.name}, ${response}`;
-
-        resolve(handlerInput.responseBuilder
-          .speak(output)
-          .withSimpleCard(bestMatch.object.name, output)
-          .withShouldEndSession(false)
-          .getResponse())
-      }).catch(error => {
-        resolve(speakError(handlerInput, 'I had trouble getting your submission scores. Try again later', error))
-      });
-    });
   },
 };
 

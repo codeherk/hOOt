@@ -50,11 +50,11 @@
           "name": "AssignmentIntent",
           "slots": [
             {
-              "name": "position",
+              "name": "course",
               "type": "AMAZON.SearchQuery",
               "samples": [
-                "{position}",
-                "index {position}"
+                "{course}",
+                "in {course}"
               ]
             }
           ],
@@ -64,35 +64,36 @@
             "what assignments do I have coming up",
             "what homework do I have",
             "what do I need to do",
-            "What assignments do I have for {position}",
-            "What are my assignments for {position}",
-            "What homework do I have for {position}",
-            "What are my homework for {position}",
-            "Assignments for {position}",
-            "Homework for {position}",
-            "what do I need to do for my {position} class"
+            "What assignments do I have for {course}",
+            "What are my assignments for {course}",
+            "What homework do I have for {course}",
+            "What are my homework for {course}",
+            "Assignments for {course}",
+            "Homework for {course}",
+            "what do I need to do for my {course} class"
           ]
         },
         {
           "name": "CourseStudentsIntent",
           "slots": [
             {
-              "name": "position",
+              "name": "course",
               "type": "AMAZON.SearchQuery",
               "samples": [
-                "{position}",
-                "index {position}"
+                "{course}",
+                "index {course}"
               ]
             }
           ],
           "samples": [
             "How many students are in my class",
-            "what students are taking {position}",
-            "what students are taking {position} class",
-            "how many students are taking {position} class",
-            "how many students are in {position}",
-            "who is in {position}",
-            "who am I taking {position} with"
+            "what students are taking my class",
+            "what students are taking {course}",
+            "what students are taking {course} class",
+            "how many students are taking {course} class",
+            "how many students are in {course}",
+            "who is in {course}",
+            "who am I taking {course} with"
           ]
         },
         {
@@ -110,11 +111,11 @@
           "name": "SubmissionScoresIntent",
           "slots": [
             {
-              "name": "position",
+              "name": "course",
               "type": "AMAZON.SearchQuery",
               "samples": [
-                "{position}",
-                "index {position}"
+                "{course}",
+                "index {course}"
               ]
             }
           ],
@@ -125,8 +126,9 @@
             "what are my grades for my current submissions",
             "what are my assignment scores",
             "what are my assignment grades",
-            "what are my submission scores in {position}",
-            "what are my assignment scores in {position}"
+            "what are my submission scores in {course}",
+            "what are my assignment scores in {course}",
+            "what are my assignment grades in {course}"
           ]
         }
       ],
@@ -140,12 +142,12 @@
           "prompts": {},
           "slots": [
             {
-              "name": "position",
+              "name": "course",
               "type": "AMAZON.SearchQuery",
               "confirmationRequired": false,
               "elicitationRequired": true,
               "prompts": {
-                "elicitation": "Elicit.Intent-AssignmentIntent.IntentSlot-position"
+                "elicitation": "Elicit.Intent-AssignmentIntent.IntentSlot-course"
               }
             }
           ]
@@ -156,12 +158,12 @@
           "prompts": {},
           "slots": [
             {
-              "name": "position",
+              "name": "course",
               "type": "AMAZON.SearchQuery",
               "confirmationRequired": false,
               "elicitationRequired": true,
               "prompts": {
-                "elicitation": "Elicit.Intent-SubmissionScoresIntent.IntentSlot-position"
+                "elicitation": "Elicit.Intent-SubmissionScoresIntent.IntentSlot-course"
               }
             }
           ]
@@ -172,12 +174,12 @@
           "prompts": {},
           "slots": [
             {
-              "name": "position",
+              "name": "course",
               "type": "AMAZON.SearchQuery",
               "confirmationRequired": false,
               "elicitationRequired": true,
               "prompts": {
-                "elicitation": "Elicit.Intent-CourseStudentsIntent.IntentSlot-position"
+                "elicitation": "Elicit.Intent-CourseStudentsIntent.IntentSlot-course"
               }
             }
           ]
@@ -186,7 +188,7 @@
     }, 
     "prompts": [
       {
-        "id": "Elicit.Intent-AssignmentIntent.IntentSlot-position",
+        "id": "Elicit.Intent-AssignmentIntent.IntentSlot-course",
         "variations": [
           {
             "type": "PlainText",
@@ -195,7 +197,7 @@
         ]
       },
       {
-        "id": "Elicit.Intent-SubmissionScoresIntent.IntentSlot-position",
+        "id": "Elicit.Intent-SubmissionScoresIntent.IntentSlot-course",
         "variations": [
           {
             "type": "PlainText",
@@ -204,7 +206,7 @@
         ]
       },
       {
-        "id": "Elicit.Intent-CourseStudentsIntent.IntentSlot-position",
+        "id": "Elicit.Intent-CourseStudentsIntent.IntentSlot-course",
         "variations": [
           {
             "type": "PlainText",
