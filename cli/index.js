@@ -412,11 +412,11 @@ function formatStudents(students,by = 'full'){
 
 //log(ascii_art);
 
-/*getCourses(courses => {
+getCourses(courses => {
 
   var speechText = '\n\nYou are currently enrolled in: ' + coursesToString(courses);
-  log(speechText);
-  log("Your current grades are as follows: " + courseGradesToString(courses));
+  //log(speechText);
+  //log("Your current grades are as follows: " + courseGradesToString(courses));
 
   var courseIDs = mapCourses(courses,'id');
   //log(courseIDs);
@@ -430,6 +430,7 @@ function formatStudents(students,by = 'full'){
   getAnnouncements(courseIDs, announcements => {
     for( let i=0;i<announcements.length;i++){
       log((announcements[i].message));
+      //log((announcements[i].title));
     }
   }).catch(error => {
     log("Could not get announcements. " + error, red);
@@ -438,7 +439,7 @@ function formatStudents(students,by = 'full'){
 }).catch(error => {
   log("Could not get courses. " + error, red);
 });
-
+/*
 getTACourses(courses => {
   //var courseIDs = formatCourses(courses,'id');
   var courseIDs = mapCourses(courses,'id');
@@ -464,8 +465,9 @@ getTACourses(courses => {
   log("Could not get courses. " + error, red);
 });*/
 
-getCourses(courses => {
-  var courseIDs = mapCourses(courses,'id');
+// getCourses(courses => {
+//   var courseIDs = mapCourses(courses,'id');
+//   var courseName = mapCourses(courses,'name')
   
   //receive grades for ALL submitted assignments in ALL registered courses.
   // for (var i = 0; i < courseIDs.length; i++) {
@@ -480,7 +482,6 @@ getCourses(courses => {
     log(`Students in ${courses[0].name}`,cyan)
     //log(formatStudents(res));
     log(formatStudents(res,'first'));
-  })
-});
+  });
 
 

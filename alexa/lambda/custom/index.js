@@ -403,7 +403,7 @@ const LaunchRequestHandler = {
     } else {
 
       return new Promise(resolve => {
-        const speechText = 'Welcome to hOOt for Canvas, how may I help you? You can say help for more information';
+        const speechText = 'Welcome to hOOt for Canvas, You can say help for more information. How may I help you? ';
         // user is signed in, get access token from amazon
         alexa_access_token = handlerInput.requestEnvelope.context.System.user.accessToken;
         
@@ -776,8 +776,24 @@ const HelpIntentHandler = {
       handlerInput.requestEnvelope.request.intent.name === 'AMAZON.HelpIntent';
   },
   handle(handlerInput) {
-    const intentsText= "You can ask for your courses, assignments, grades, or announcements. Please say a command.  "
-    const speechText = 'Hoot is a skill that answers questions about your canvas account. ' + intentsText;
+
+    var examples = [
+      "what are my announcements. ", 
+      "what assignments do I have. ", 
+      "what are my current course scores. ",
+      "what classes am I taking. ",
+      "do i have any announcements. ",
+      "what homework do I have. ",
+      "what are my course scores. ",
+      "what courses am I enrolled in. "
+    ];
+
+    var chooseRandomSample = Math.floor(Math.random() * examples.length);
+
+    const intentsText= "You can say things like. " + examples[chooseRandomSample] + " Please say a command. ";
+    const speechText = 'Hoot can answer questions about your canvas account! ' + intentsText;
+
+    chooseRandomSample = Math.floor(Math.random() * examples.length);
 
     return handlerInput.responseBuilder
       .speak(speechText)
