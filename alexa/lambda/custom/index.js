@@ -544,7 +544,7 @@ const AssignmentIntentHandler = {
   },
   handle(handlerInput) {
     const intent = handlerInput.requestEnvelope.request.intent;
-    var requestedCourse = intent.slots.position.value;
+    var requestedCourse = intent.slots.course.value;
     
     // retrieve courses from session attributes
     const attributes = handlerInput.attributesManager.getSessionAttributes();
@@ -597,7 +597,7 @@ const GetAssignmentIntentHandler = {
   },
   handle(handlerInput) {
     const currentIntent = handlerInput.requestEnvelope.request.intent;       
-    var requestedCourse = currentIntent.slots.position.value;
+    var requestedCourse = currentIntent.slots.course.value;
     // retrieve courses from session attributes
     const attributes = handlerInput.attributesManager.getSessionAttributes();
     const courses = attributes.courses
@@ -670,7 +670,7 @@ const GetSubmissionScoresIntentHandler = {
   },
   handle(handlerInput) {
     const currentIntent = handlerInput.requestEnvelope.request.intent;
-    var requestedCourse = currentIntent.slots.position.value;
+    var requestedCourse = currentIntent.slots.course.value;
 
     const attributes = handlerInput.attributesManager.getSessionAttributes();
     const courses = attributes.courses
@@ -707,7 +707,7 @@ const CourseStudentsIntentHandler = {
   },
   handle(handlerInput) {
     const currentIntent = handlerInput.requestEnvelope.request.intent;
-    var requestedCourse = currentIntent.slots.position.value;
+    var requestedCourse = currentIntent.slots.course.value;
     
     const attributes = handlerInput.attributesManager.getSessionAttributes();
     const courses = attributes.courses;
@@ -737,7 +737,7 @@ const GetStudentsIntentHandler = {
   },
   handle(handlerInput) {
     const currentIntent = handlerInput.requestEnvelope.request.intent;
-    var requestedCourse = currentIntent.slots.position.value;
+    var requestedCourse = currentIntent.slots.course.value;
 
     const attributes = handlerInput.attributesManager.getSessionAttributes();
     const courses = attributes.courses;
