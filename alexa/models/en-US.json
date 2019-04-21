@@ -64,7 +64,35 @@
             "what assignments do I have coming up",
             "what homework do I have",
             "what do I need to do",
+            "What assignments do I have for {position}",
+            "What are my assignments for {position}",
+            "What homework do I have for {position}",
+            "What are my homework for {position}",
+            "Assignments for {position}",
+            "Homework for {position}",
             "what do I need to do for my {position} class"
+          ]
+        },
+        {
+          "name": "CourseStudentsIntent",
+          "slots": [
+            {
+              "name": "position",
+              "type": "AMAZON.SearchQuery",
+              "samples": [
+                "{position}",
+                "index {position}"
+              ]
+            }
+          ],
+          "samples": [
+            "How many students are in my class",
+            "what students are taking {position}",
+            "what students are taking {position} class",
+            "how many students are taking {position} class",
+            "how many students are in {position}",
+            "who is in {position}",
+            "who am I taking {position} with"
           ]
         },
         {
@@ -76,6 +104,29 @@
             "get my announcements",
             "do i have any announcements",
             "what do I need to do for my class"
+          ]
+        },
+        {
+          "name": "SubmissionScoresIntent",
+          "slots": [
+            {
+              "name": "position",
+              "type": "AMAZON.SearchQuery",
+              "samples": [
+                "{position}",
+                "index {position}"
+              ]
+            }
+          ],
+          "samples": [
+            "submissions",
+            "what are my submission scores",
+            "what are my scores for current submissions",
+            "what are my grades for my current submissions",
+            "what are my assignment scores",
+            "what are my assignment grades",
+            "what are my submission scores in {position}",
+            "what are my assignment scores in {position}"
           ]
         }
       ],
@@ -98,12 +149,62 @@
               }
             }
           ]
+        },
+        {
+          "name": "SubmissionScoresIntent",
+          "confirmationRequired": false,
+          "prompts": {},
+          "slots": [
+            {
+              "name": "position",
+              "type": "AMAZON.SearchQuery",
+              "confirmationRequired": false,
+              "elicitationRequired": true,
+              "prompts": {
+                "elicitation": "Elicit.Intent-SubmissionScoresIntent.IntentSlot-position"
+              }
+            }
+          ]
+        },
+        {
+          "name": "CourseStudentsIntent",
+          "confirmationRequired": false,
+          "prompts": {},
+          "slots": [
+            {
+              "name": "position",
+              "type": "AMAZON.SearchQuery",
+              "confirmationRequired": false,
+              "elicitationRequired": true,
+              "prompts": {
+                "elicitation": "Elicit.Intent-CourseStudentsIntent.IntentSlot-position"
+              }
+            }
+          ]
         }
       ]
     }, 
     "prompts": [
       {
         "id": "Elicit.Intent-AssignmentIntent.IntentSlot-position",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "Tell me what course"
+          }
+        ]
+      },
+      {
+        "id": "Elicit.Intent-SubmissionScoresIntent.IntentSlot-position",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "Tell me what course"
+          }
+        ]
+      },
+      {
+        "id": "Elicit.Intent-CourseStudentsIntent.IntentSlot-position",
         "variations": [
           {
             "type": "PlainText",

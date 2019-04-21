@@ -16,7 +16,7 @@
 
 const Alexa = require('ask-sdk-core');
 const axios = require('axios');
-const { Course, Assignment } = require('./canvas');
+const { Student, Course, Assignment } = require('./canvas');
 //Helper Function for calling the Cognito /oauth2/userInfo to get user info using the accesstoken
 const https = require('https');
 const ld = require('./levenshtein');
@@ -165,6 +165,37 @@ const courseGradesToString = function(courses) {
 }
 
 /**
+ * Extract submission score, points possible, and assignment name.
+ * Calculate percentage score for submitted assignments.
+ * @param {Assignment []} assignments 
+ * @returns {String} formatted string of percentage scores for submitted assignments.
+ */
+const submissionScoresToString = function(assignments) {
+  var assignmentName = '', submissionScore = '', pointsPossible = '';
+  var scoresString = '';
+
+  for (var i in assignments) {
+    if (assignments.hasOwnProperty(i)) {
+      assignmentName = assignments[i].name;
+      submissionScore = assignments[i].submission.score;
+      pointsPossible = assignments[i].points_possible;
+
+      var percent;
+      if (submissionScore != null) {
+        percent = ((submissionScore / pointsPossible) * 100);
+        //for readability. found up for scores with decimal points
+        if (percent % 1 != 0) {
+          percent = ((submissionScore / pointsPossible) * 100).toFixed(2);
+        }
+        //scoresString += `Your score for ${assignmentName}, is ${percent} percent. `;
+        scoresString += `Your score for ${assignmentName}, is ${percent} percent. `;
+      }
+    }
+  }
+  return 'your submission scores are as follows: ' + scoresString;
+}
+
+/**
  * Makes an HTTP GET request to Canvas LMS API, specifying API returns upcoming assignments only.
  * Receives a response from API with all of a user's upcoming assignments for a course with the given course ID.
  * Creates an array of Assignment objects based on API's response.
@@ -190,6 +221,41 @@ const getUpcomingAssignments = function(courseID,callback){
 };
 
 /**
+ * Updated getAssignments function.
+ * Makes an HTTP GET request to Canvas LMS API.
+ * If includeSubmissions param. == true, response includes submissions field.
+ * If bucket param. == upcoming, only assignments with upcoming field set to true will be returned
+ * Otherwise, all Assignments corresponding to courseID param. will be returned.
+ * Creates an array of Assignment objects based on API's response.
+ * Passes array of Assignment objects to callback function.
+ * @param {String} courseID 
+ * @param {boolean} includeSubmissions 
+ * @param {String} bucket 
+ * @param {function} callback 
+ */
+const getAssignments = function(courseID, includeSubmissions, bucket = 'upcoming', callback) {
+  var requestURL = url + 'courses/' + courseID + '/assignments';
+
+  if (includeSubmissions) {
+    requestURL += '?include[]=submission'
+  }
+
+  if (bucket === 'upcoming') {
+    requestURL += '&bucket=upcoming'
+  }
+
+  return axios.get(requestURL, headerOptions)
+    .then(response => {
+      var data = response.data;
+      var assignments = [];
+      for (let i = 0; i < data.length; i++) {
+        assignments.push(new Assignment(data[i]));
+      }
+      callback(assignments);
+    });
+};
+
+/**
  * Create array of Assignments.
  * Add assignments from task param. into new array adding due-date details.
  * @param {Assignment []} tasks 
@@ -208,6 +274,81 @@ const formatAssignments = function (tasks){
     list.push(detail);
   }
   return list;
+}
+
+/**
+ * Makes an HTTP GET request to Canvas LMS API.
+ * Receives response from API containing list of all students enrolled in a course with the given Course ID.
+ * Calls callback function, passing in response as param. 
+ * @param {String} courseID 
+ * @param {function} callback 
+*/
+const getUsers = function (courseID, callback) {
+  var result = url + 'courses/' + courseID + '/users' + '?enrollment_type[]=student';
+  return get(result).then(data => {
+    var students = [];
+    // create student objects
+    data.forEach(obj => {
+      students.push(new Student(obj));
+    });
+    callback(students);
+  });
+}
+
+function get(url, data = []) {
+  return axios.get(url,headerOptions)
+    .then(response => {
+      data = data.concat(response.data);
+      // get next data from next link if possible
+      var linklist = response.headers['link'].split(",");
+      var nextLink = linklist.filter((link) => link.split(";")[1].includes("next"));
+      
+      if (nextLink && nextLink.length) {
+        nextLink = nextLink[0].split(";")[0];
+        nextLink = nextLink.substring(1, nextLink.length - 1);
+        return get(nextLink, data)
+      }else{
+        return data
+      }
+    });
+}
+
+function formatStudents(students, by = 'full'){
+  var string = '';
+  let i = 0;
+  if(by == 'first'){
+    students = students.map(student => student.name.split(' ')[0]);
+  }else{
+    students = students.map(student => student.name);
+  }
+  for (; i < students.length - 1; i++) {
+    string += `${students[i]}, `;
+  }
+  string += `and ${students[i]}.`;
+  return string;
+}
+
+function listStudents(handlerInput, requestedCourse, courses){
+  //console.log(`Inside list students. courses: ${courses}`);
+  //compare requestedCourse with course array
+  var bestMatch = ld.FinalWord(requestedCourse, courses); // return course id
+  console.log(`Best match for ${requestedCourse}: ${bestMatch.object.id} ,${bestMatch.object.name}`)
+  var courseID = bestMatch.object.id;
+  
+  return new Promise(resolve => {
+    getUsers(courseID, students => {
+      var list = formatStudents(students);
+      var output = `A total of ${students.length} are enrolled in ${bestMatch.object.name}: ${list}`;
+      console.log(`list of students: ${list}`);
+      resolve(handlerInput.responseBuilder
+        .speak(output)
+        .withSimpleCard(bestMatch.object.name, "list")
+        .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
+        .getResponse())
+    }).catch(error => {
+       resolve(speakError(handlerInput,`I had trouble getting the list of students. Try again later.`, error));
+    });
+  });
 }
 
 // https is a default part of Node.JS.  Read the developer doc:  https://nodejs.org/api/https.html
@@ -269,31 +410,34 @@ const LaunchRequestHandler = {
         // try to get info about user. 
         try {
           var tokenOptions = buildHttpGetOptions(alexa_access_token);
-          console.log(`aat: ${alexa_access_token}`); // access token granted from amazon cognito
+          //console.log(`aat: ${alexa_access_token}`); // access token granted from amazon cognito
 
           // make a call to get user attributes
           httpGet(tokenOptions, response => {
-            console.log(response.data);
-            console.log(response.data.zoneinfo);
-            
+            //console.log(response.data);
+            //console.log(response.data.zoneinfo);
+
             const sessionAttributes = handlerInput.attributesManager.getSessionAttributes(); // get session attributes
             sessionAttributes.access_token = response.data.zoneinfo; // store access token in session
             setHeaderOptions(response.data.zoneinfo);
-            handlerInput.attributesManager.setSessionAttributes(sessionAttributes); // save session attributes
             
-            resolve(handlerInput.responseBuilder
-              .speak(speechText)
-              .reprompt(speechText)
-              .withSimpleCard('hOOt for Canvas', speechText)
-              .getResponse());
+            getCourses(courses => {
+              sessionAttributes.courses = courses
+              handlerInput.attributesManager.setSessionAttributes(sessionAttributes); // save session attributes
+              resolve(handlerInput.responseBuilder
+                .speak(speechText)
+                .reprompt(speechText)
+                .withSimpleCard('hOOt for Canvas', speechText)
+                .getResponse());
+            }).catch(error => {
+              resolve(speakError(handlerInput,"I had trouble getting your courses. Please try again later.",error));
+            });
 
           }).catch(error => {
-            console.log(`ERROR: ${error}`);
             resolve(speakError(handlerInput,"I had trouble getting access to canvas.",error));
           });
           
         }catch(error) {
-          console.log(`Error message: ${error.message}`);
           resolve(speakError(handlerInput,"I had trouble getting access to canvas. Try again later.",error));
         }
       });
@@ -314,19 +458,19 @@ const CoursesIntentHandler = {
       handlerInput.requestEnvelope.request.intent.name === 'CoursesIntent';
   },
   handle(handlerInput) {
+    // retrieve courses from session attributes
+    const attributes = handlerInput.attributesManager.getSessionAttributes();
+    const courses = attributes.courses
+
     return new Promise(resolve => {
-      getCourses(courses => {
-        var question = ' Anything else I can help you with?';
-        var speechText = 'You are currently enrolled in: ' + coursesToString(courses);
-        resolve(handlerInput.responseBuilder
-          .speak(speechText + question)
-          .withStandardCard("Enrolled Courses", speechText, smallImgUrl, largeImgUrl)
-          .withShouldEndSession(false)
-          .getResponse()          
-        );
-      }).catch(error => {
-        resolve(speakError(handlerInput,'I am having a little trouble getting your current courses. Try again later.', error));
-      });
+      var question = ' Anything else I can help you with?';
+      var speechText = 'You are currently enrolled in: ' + coursesToString(courses);
+      resolve(handlerInput.responseBuilder
+        .speak(speechText + question)
+        .withStandardCard("Enrolled Courses", speechText, smallImgUrl, largeImgUrl)
+        .withShouldEndSession(false)
+        .getResponse()          
+      );
     });
   }
 };
@@ -367,29 +511,28 @@ const CourseScoresIntentHandler = {
       handlerInput.requestEnvelope.request.intent.name === 'CourseScoresIntent';
   },
   handle(handlerInput) {
+    // retrieve courses from session attributes
+    const attributes = handlerInput.attributesManager.getSessionAttributes();
+    const courses = attributes.courses
+
     return new Promise(resolve => {
-      getCourses(courses => {
-        //courses = courses.filter((course) => !ignoreCourses.includes(course.name)); 
-        var question = ' Anything else I can help you with?';
-        var speechText = 'Your current grades are as follows: ' + courseGradesToString(courses);
-        resolve(handlerInput.responseBuilder
-          .speak(speechText + question)
-          .withStandardCard("Enrolled Courses", speechText, smallImgUrl, largeImgUrl)
-          .withShouldEndSession(false)
-          .getResponse()
-        );
-      }).catch(error => {
-        resolve(speakError(handlerInput,'I am having a little trouble getting your current courses. Try again later.', error));
-      });
+      //courses = courses.filter((course) => !ignoreCourses.includes(course.name)); 
+      var question = ' Anything else I can help you with?';
+      var speechText = 'Your current grades are as follows: ' + courseGradesToString(courses);
+      resolve(handlerInput.responseBuilder
+        .speak(speechText + question)
+        .withStandardCard("Enrolled Courses", speechText, smallImgUrl, largeImgUrl)
+        .withShouldEndSession(false)
+        .getResponse()
+      );
     });
   }
 };
 
 /**
- * Handler for skills getAssignments Intent.
- * Invokes canHandle() to ensure request is an IntentRequest,
- * matching the declared Assignment Intent.
- * Invokes handle() to receive 
+ * Receive initial user input.
+ * Get list of user's classes based on access token in use.
+ * Save courseList to object.
  */
 const AssignmentIntentHandler = {
   canHandle(handlerInput) {
@@ -401,28 +544,49 @@ const AssignmentIntentHandler = {
   },
   handle(handlerInput) {
     const intent = handlerInput.requestEnvelope.request.intent;
+    var requestedCourse = intent.slots.position.value;
+    
+    // retrieve courses from session attributes
+    const attributes = handlerInput.attributesManager.getSessionAttributes();
+    const courses = attributes.courses
+
     return new Promise(resolve => {
-      getCourses(courses => {
-        classes = courses;
-        // classes = courses.filter((course) => !ignoreCourses.includes(course.name)); 
+      if (requestedCourse === undefined) {
         resolve(handlerInput.responseBuilder
           .addDelegateDirective(intent)
           .getResponse()
         );
-      });
-    }).catch(error => {
-      resolve(handlerInput.responseBuilder
-        .speak('I am having a little trouble getting your current courses. Try again later.')
-        .getResponse()
-      );
+      }else {
+        var bestMatch = ld.FinalWord(requestedCourse, courses); // return course id
+        var courseID = bestMatch.object.id;
+
+        getUpcomingAssignments(courseID, tasks => {
+          var list = formatAssignments(tasks);
+          var output = (list === undefined || list.length == 0) ? 'there are no upcoming assignments' : list[0];
+          output = `For ${bestMatch.object.name}, ${output}`;
+
+          resolve(handlerInput.responseBuilder
+              .speak(output)
+              .withSimpleCard(bestMatch.object.name, output)
+              .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
+              .getResponse()
+          )
+        }).catch(error => {
+          resolve(speakError(handlerInput,`I had trouble getting your assignments. Try again later.`, error));
+        });
+      }
     });
-    // const intent = handlerInput.requestEnvelope.request.intent;
-    //    return handlerInput.responseBuilder
-    //           .addDelegateDirective(intent)
-    //           .getResponse();
   },
 };
 
+/**
+ * Handler for skills GetAssignment Intent.
+ * Invokes canHandle() to ensure request is an IntentRequest,
+ * matching the declared Assignment Intent,
+ * and that the status of the dialogState is 'IN_PROGRESS'.
+ * Invokes handle() to fetch list of upcoming assignments for the best match to the user's
+ * initially vocalized course, and vocalizes that list to the user.
+ */
 const GetAssignmentIntentHandler = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request;
@@ -434,23 +598,19 @@ const GetAssignmentIntentHandler = {
   handle(handlerInput) {
     const currentIntent = handlerInput.requestEnvelope.request.intent;       
     var requestedCourse = currentIntent.slots.position.value;
-    //var index = position - 1;
-
-    
+    // retrieve courses from session attributes
+    const attributes = handlerInput.attributesManager.getSessionAttributes();
+    const courses = attributes.courses
 
     return new Promise(resolve => {
       //compare requestedCourse with course array
-      var bestMatch = ld.FinalWord(requestedCourse, classes); // return course id
+      var bestMatch = ld.FinalWord(requestedCourse, courses); // return course id
       /**
        * bestMatch.object.{.name, .id, .position, .match, .distance}
        * bestMatch.status = {100 = good, 401 = null array}
        */
       
       var courseID = bestMatch.object.id;
-
-      // get best match
-
-      // get assignments with best match given
 
       //var courseIDs = mapCourses(classes,'id');
       classes = mapCourses(classes,'name');
@@ -472,6 +632,132 @@ const GetAssignmentIntentHandler = {
         )
       }).catch(error => {
         resolve(speakError(handlerInput,`I had trouble getting your assignments. Try again later.`, error));
+      });
+    });
+  },
+};
+
+const CourseStudentsIntentHandler = {
+  canHandle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request;
+    return request.type === 'IntentRequest' &&
+      request.intent.name === 'CourseStudentsIntent' &&
+      request.dialogState === 'STARTED';
+  },
+  handle(handlerInput) {
+    const currentIntent = handlerInput.requestEnvelope.request.intent;
+    var requestedCourse = currentIntent.slots.position.value;
+    
+    const attributes = handlerInput.attributesManager.getSessionAttributes();
+    const courses = attributes.courses;
+    console.log(`Requested Course: ${requestedCourse}`);
+
+    return new Promise(resolve => {
+      if(requestedCourse === undefined){
+        resolve(handlerInput.responseBuilder
+          .addDelegateDirective(currentIntent)
+          .getResponse()
+        );
+      }else{
+        resolve(
+          listStudents(handlerInput,requestedCourse,courses)
+        );
+      }
+    }); 
+  },
+};
+
+const GetStudentsIntentHandler = {
+  canHandle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request;
+    return request.type === 'IntentRequest' &&
+      request.intent.name === 'CourseStudentsIntent' &&
+      request.dialogState === 'IN_PROGRESS';
+  },
+  handle(handlerInput) {
+    const currentIntent = handlerInput.requestEnvelope.request.intent;
+    var requestedCourse = currentIntent.slots.position.value;
+    const attributes = handlerInput.attributesManager.getSessionAttributes();
+    const courses = attributes.courses;
+
+    console.log(`courses in attributes: ${attributes.courses}`);
+    console.log(`Requested: ${requestedCourse}`);
+
+    return new Promise(resolve => {
+      resolve(
+        listStudents(handlerInput,requestedCourse,courses)
+      );
+    }); 
+  },
+};
+
+/**
+ * Receive initial user input.
+ * Get list of user's classes based on access token in use.
+ * Save courseList to object.
+ */
+const SubmissionScoresIntentHandler = {
+  canHandle(handlerInput) {
+    return handlerInput.requestEnvelope.request.type === 'IntentRequest' &&
+      handlerInput.requestEnvelope.request.intent.name === 'SubmissionScoresIntent' &&
+      handlerInput.requestEnvelope.request.dialogState === 'STARTED';
+  },
+  handle(handlerInput) {
+    const intent = handlerInput.requestEnvelope.request.intent;
+
+    return new Promise(resolve => {
+      getCourses(courses => {
+        //initial call to this intent will gather courses and save them
+        classes = courses;
+        
+        resolve(handlerInput.responseBuilder
+          .addDelegateDirective(intent)
+          .getResponse()
+        )
+      }).catch(error => {
+        resolve(speakError(handlerInput, 'error error', error));
+      });
+    });
+  },
+};
+
+/**
+ * Handler for skills getSubmissionScores Intent.
+ * Invokes canHandle() to ensure request is an IntentRequest,
+ * matching the declared SubmissionScores Intent,
+ * and that the status of the dialogState is 'IN_PROGRESS'.
+ * Invokes handle() to fetch list of assignments for the best match to the user's
+ * initially vocalized course, 
+ * and use that assignment list to extract submission scores.
+ */
+const GetSubmissionScoresIntentHandler = {
+  canHandle(handlerInput) {
+    return handlerInput.requestEnvelope.request.type === 'IntentRequest' &&
+      handlerInput.requestEnvelope.request.intent.name === 'SubmissionScoresIntent' &&
+      handlerInput.requestEnvelope.request.dialogState === 'IN_PROGRESS';
+  },
+  handle(handlerInput) {
+    const currentIntent = handlerInput.requestEnvelope.request.intent;
+    var requestedCourse = currentIntent.slots.position.value;
+
+    return new Promise(resolve => {
+      // find the closest match to the user's utterance in classes
+      var bestMatch = ld.FinalWord(requestedCourse, classes);
+      //get ID of course returned as best match
+      var courseID = bestMatch.object.id;
+
+      classes = mapCourses(classes, 'name');
+      getAssignments(courseID, true, '', tasks => {
+        var response = submissionScoresToString(tasks);
+        var output = `In ${bestMatch.object.name}, ${response}`;
+
+        resolve(handlerInput.responseBuilder
+          .speak(output)
+          .withSimpleCard(bestMatch.object.name, output)
+          .withShouldEndSession(false)
+          .getResponse())
+      }).catch(error => {
+        resolve(speakError(handlerInput, 'I had trouble getting your submission scores. Try again later', error))
       });
     });
   },
@@ -586,23 +872,13 @@ exports.handler = skillBuilder
     TACoursesIntentHandler,
     AssignmentIntentHandler,
     GetAssignmentIntentHandler,
+    SubmissionScoresIntentHandler,
+    GetSubmissionScoresIntentHandler,
+    CourseStudentsIntentHandler,
+    GetStudentsIntentHandler,
     HelpIntentHandler,
     CancelAndStopIntentHandler,
     SessionEndedRequestHandler
   )
   .addErrorHandlers(ErrorHandler)
   .lambda();
-
-
-// {
-//   "name": "AssignmentsIntent",
-//   "slots": [
-//     {
-//       "name": "className",
-//       "type": ""
-//     }
-//   ],
-//   "samples": [
-//     "What assignment do i have for {className}"
-//   ]
-// }

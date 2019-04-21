@@ -10,7 +10,7 @@
         },
         "interactionModel": {
           "en-US": {
-            "eTag": "6ac1a93fc10967eee5ee666fbc4a106b"
+            "eTag": "da9f25323a6f885bfcab3e70d20bb34c"
           }
         },
         "lambda": [
@@ -23,7 +23,7 @@
             "codeUri": "lambda/custom",
             "functionName": "getCourses",
             "handler": "index.handler",
-            "revisionId": "670ed8a7-c2e3-4bce-ae3d-f8989dadc3ec",
+            "revisionId": "9b9281ac-48ad-404d-838d-bea69798b62d",
             "runtime": "nodejs8.10"
           }
         ]
@@ -86,6 +86,11 @@
           }
         ]
       }
+    },
+    "Brendan": {
+      "skill_id": "amzn1.ask.skill.b82613cd-3e68-449c-898b-2bc51c766e72",
+      "was_cloned": false,
+      "merge": {}
     }
   }
 }
