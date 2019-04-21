@@ -23,7 +23,9 @@
  // install packages
 const axios = require('axios');
 const { Course, Assignment, Announcement, ascii_art } = require('./canvas');
-const { access_token } = require('./config');
+//const { access_token } = require('./config');
+
+const access_token = '9957~rsVxuwVd7HAPmPrVmy6JvCSZO3sb0u92WTLo7ek7xQ2082ibpXc00X3FQbCbSHeY'
 
 //var access_token = "ACCESS TOKEN GOES HERE" // NEVER, EVER PUSH YOUR ACCESS TOKEN UP TO GITHUB
 
@@ -372,11 +374,11 @@ const getContentExports = function (courseID,callback) {
 
 log(ascii_art);
 
-/*getCourses(courses => {
+getCourses(courses => {
 
   var speechText = '\n\nYou are currently enrolled in: ' + coursesToString(courses);
-  log(speechText);
-  log("Your current grades are as follows: " + courseGradesToString(courses));
+  //log(speechText);
+  //log("Your current grades are as follows: " + courseGradesToString(courses));
 
   var courseIDs = mapCourses(courses,'id');
   //log(courseIDs);
@@ -390,6 +392,7 @@ log(ascii_art);
   getAnnouncements(courseIDs, announcements => {
     for( let i=0;i<announcements.length;i++){
       log((announcements[i].message));
+      //log((announcements[i].title));
     }
   }).catch(error => {
     log("Could not get announcements. " + error, red);
@@ -398,7 +401,7 @@ log(ascii_art);
 }).catch(error => {
   log("Could not get courses. " + error, red);
 });
-
+/*
 getTACourses(courses => {
   //var courseIDs = formatCourses(courses,'id');
   var courseIDs = mapCourses(courses,'id');
@@ -424,14 +427,16 @@ getTACourses(courses => {
   log("Could not get courses. " + error, red);
 });*/
 
-getCourses(courses => {
-  var courseIDs = mapCourses(courses,'id');
+// getCourses(courses => {
+//   var courseIDs = mapCourses(courses,'id');
+//   var courseName = mapCourses(courses,'name')
   
-  //receive grades for ALL submitted assignments in ALL registered courses.
-  for (var i = 0; i < courseIDs.length; i++) {
-    getAssignments(courseIDs[i], true, tasks => {
-      log(submissionScoresToString(tasks));
-      log('\n');
-    });
-  }
-});
+//   //receive grades for ALL submitted assignments in ALL registered courses.
+//   for (var i = 0; i < courseIDs.length; i++) {
+//     //getAssignments(courseIDs[i], true, tasks => {
+//       //log(submissionScoresToString(tasks));
+//       //log('\n');
+//     //});
+//     //log('Name: ' + courseName[i] + ' ID: ' + courseIDs[i]);
+//   }
+// });

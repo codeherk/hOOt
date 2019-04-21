@@ -262,7 +262,7 @@ const LaunchRequestHandler = {
     } else {
 
       return new Promise(resolve => {
-        const speechText = 'Welcome to hOOt for Canvas, how may I help you? You can say help for more information';
+        const speechText = 'Welcome to hOOt for Canvas, You can say help for more information. How may I help you? ';
         // user is signed in, get access token from amazon
         alexa_access_token = handlerInput.requestEnvelope.context.System.user.accessToken;
         
