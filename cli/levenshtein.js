@@ -70,6 +70,7 @@ function DataAggregate(user, courseArray) {
     this.most_match = 0;
     this.penalty = 0;
     this.no_match = false;
+    this.result;
 
     this.populateMatchData = () => {
         matchToCourse(this.user_input, this.courseDataArray);
@@ -128,6 +129,22 @@ function DataAggregate(user, courseArray) {
         return this;
     };
 
+    this.setResult = () => {
+        var min = Number.MAX_VALUE;
+        
+        for (var i = 0; i < this.courseDataArray.length; i++) {
+
+            //if distance is lower than current min then set as new min and keep reference to index of min course
+            if (this.courseDataArray[i].distance < min) {
+                this.result = this.courseDataArray[i];
+                min = this.courseDataArray[i].distance;
+            }//end set new min
+
+        }//end check for smallest distance 
+
+        return this;
+    };
+
 }//end data aggregate
 
 /*
@@ -175,6 +192,30 @@ var matchToPhraseBoo = false;
  * *************************End log and debug log functions*****************************
  * *************************************************************************************/
 
+/**
+ * This function takes in an array of courses and a user input and finds the
+ * best match to the user input
+ *  
+ */
+
+var MatchMaker = (request, course) => {
+
+    var LoveMachine = new DataAggregate(testphrase, testArray);
+
+    LoveMachine.populateMatchData()
+        .populateInputMatch()
+        .trimNonMatch()
+        .primeName()
+        .findMostMatch()
+        .populateDistanceData()
+        .setResult();
+
+
+    var match = (LoveMachine.courseDataArray.length == 0)? new candidate(null, NO_MATCH) : new candidate(LoveMachine.result, SUCCESS);
+
+    return match;
+
+}//end MatchMaker
 
 /*
  * This function takes in the user requested course and an array of courses to find a single bext match
@@ -265,7 +306,7 @@ var constructPhrase = (words, indices) => {
 
     for (var i = 0; i<indices.length-1; i++) {
 
-        newPhrase += words[indices[i]] + ' ';
+        newPhrase += `${words[indices[i]]} `;
     
     }//end
 
@@ -445,7 +486,7 @@ var matchToCourse = (userPhrase, courseList) => {
             //iterate through each word in the current course
             for (var k = 0; k < courseList[i].words.length; k++) {
 
-                _db(courseList[i].words[k] + '======' + userPhrase.words[j] + '=====' + courseList[i].words[k].includes(userPhrase.words[j]), matchToCourseBoo)
+                _db(`${courseList[i].words[k]} ====== ${userPhrase.words[j]} ===== ${courseList[i].words[k].includes(userPhrase.words[j])}`, matchToCourseBoo)
                 //check to see if word in course matches word in phrase
                 //if they are increase match value by one and log the indice of the match
                 if ( courseList[i].words[k].includes(userPhrase.words[j]) ) {
@@ -481,7 +522,7 @@ var matchToPhrase = (userPhrase, courseList) => {
             //iterate through each word in course
             for (var k = 0; k < courseList[j].words.length; k++) {
 
-                _db(userPhrase.words[i] + ':::::' + courseList[j].words[k] + ':::' + userPhrase.words[i].includes(courseList[j].words[k]), matchToPhraseBoo);
+                _db(`${userPhrase.words[i]} ::::: ${courseList[j].words[k]} ::: ${userPhrase.words[i].includes(courseList[j].words[k])}`, matchToPhraseBoo);
                 //check to see if a phrase matches to word
                 if ( userPhrase.words[i].includes(courseList[j].words[k]) ) {
 
@@ -514,8 +555,11 @@ var constructPrimePhrase = (courseList) => {
         courseList[i].primeIndex = setUnion(courseList[i].match_position, courseList[i].match_input_position);
         courseList[i].namePrime = constructPhrase(courseList[i].words, courseList[i].primeIndex);
 
-        penalty += courseList[i].namePrime.length - courseList[i].primeIndex.length - 1;
-        numOfWords += courseList[i].primeIndex.length;
+        var offSet = courseList[i].primeIndex.length;
+        var initialPenalty = courseList[i].namePrime.length;
+
+        penalty += (offSet == 1) ? initialPenalty : initialPenalty - offSet;//courseList[i].namePrime.length - (courseList[i].primeIndex.length - 1);
+        numOfWords += offSet;
 
     }//end
 
@@ -634,22 +678,26 @@ var hootArrayPopulate = (arr) => {
 var testphrase = 'common good';
 var testArr = ['projects in computer science','Basic Concepts in Math','Probability Theory I',
                 'Physics 1068','IH: The Good Life','IH: The common good','Phys 1068 Lab',
-                'Intro to Modern Algebra'];
+                'Intro to Modern Algebra','data structures','data structures and algorithms'];
 
 var testArray = hootArrayPopulate(testArr);
 
-_db(testArray,false);
+//_db(testArray,false);
 
-var test = new DataAggregate(testphrase, testArray);
+var temp = MatchMaker(testphrase, testArray);
 
-test.populateMatchData()
-    .populateInputMatch()
-    .trimNonMatch()
-    .primeName()
-    .findMostMatch()
-    .populateDistanceData();
+//var test = new DataAggregate(testphrase, testArray);
 
-_db(test,true);
+// test.populateMatchData()
+//     .populateInputMatch()
+//     .trimNonMatch()
+//     .primeName()
+//     .findMostMatch()
+//     .populateDistanceData()
+//     .setResult();
+//_db(temp,true);
+//_db(test,false);
+_db(`best match to '${testphrase}' is '${temp.object.name}'`,true);
 //_db(test.most_match,true);
 
 //var a = [23,44,55,1,2,4,7,9,];
@@ -689,4 +737,5 @@ var indexs = [1,3,4];
 
 
 //things to export
-module.exports = { FinalWord };
+module.exports = { FinalWord,
+                   MatchMaker };
