@@ -719,6 +719,11 @@ const GetSubmissionScoresIntentHandler = {
   },
 };
 
+/**
+ * Receive initial user input.
+ * Get list of user's classes based on access token in use.
+ * Save courseList as object in session attribute.
+ */
 const CourseStudentsIntentHandler = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request;
@@ -749,6 +754,15 @@ const CourseStudentsIntentHandler = {
   },
 };
 
+/**
+ * Handler for skills GetStudents Intent.
+ * Invokes canHandle() to ensure request is an IntentRequest,
+ * matching the declared CourseStudents Intent,
+ * and that the status of the dialogState is 'IN_PROGRESS'.
+ * Invokes handle() to fetch the user's courses.
+ * Passes the course object into the listStudents function
+ * which handles the rest.
+ */
 const GetStudentsIntentHandler = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request;
@@ -808,6 +822,7 @@ const TotalStudentsIntentHandler = {
     }); 
   },
 };
+
 /**
  * Handler for skills TotalStudents Intent.
  * Invokes canHandle() to ensure request is an IntentRequest,
