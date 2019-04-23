@@ -338,7 +338,7 @@ function listStudents(handlerInput, requestedCourse, courses){
   return new Promise(resolve => {
     getUsers(courseID, students => {
       var list = formatStudents(students);
-      var output = `A total of ${students.length} are enrolled in ${bestMatch.object.name}: ${list}`;
+      var output = `The students currently enrolled in ${bestMatch.object.name} are: ${list}`;
       console.log(`list of students: ${list}`);
       resolve(handlerInput.responseBuilder
         .speak(output)
