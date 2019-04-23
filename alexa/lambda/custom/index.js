@@ -775,6 +775,46 @@ const GetStudentsIntentHandler = {
 };
 
 /**
+ * Handler for skills TotalStudents Intent.
+ * Invokes canHandle() to ensure request is an IntentRequest,
+ * matching the declared TotalStudents Intent,
+ * and that the status of the dialogState is 'IN_PROGRESS'.
+ * Invokes handle() to fetch the user's courses.
+ * The user's courses were saved earlier inside an attribute.
+ * The seesion attribute contains a course object that is
+ * called and is then compared to what the user says next.
+ */
+const TotalStudentsIntentHandler = {
+  canHandle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request;
+    return request.type === 'IntentRequest' &&
+      request.intent.name === 'TotalStudentsIntent' &&
+      request.dialogState === 'STARTED';
+  },
+  handle(handlerInput) {
+    const currentIntent = handlerInput.requestEnvelope.request.intent;
+    var requestedCourse = currentIntent.slots.course.value;
+    
+    const attributes = handlerInput.attributesManager.getSessionAttributes();
+    const courses = attributes.courses;
+    console.log(`Requested Course: ${requestedCourse}`);
+
+    return new Promise(resolve => {
+      if(requestedCourse === undefined){
+        resolve(handlerInput.responseBuilder
+          .addDelegateDirective(currentIntent)
+          .getResponse()
+        );
+      }else{
+        resolve(
+          getTotalStudents(handlerInput,requestedCourse,courses)
+        );
+      }
+    }); 
+  },
+};
+
+/**
  * Handler for skill's Help Intent.
  * Invokes canHandle() to ensure request is an IntentRequest
  * matching the declared HelpIntent.
@@ -887,6 +927,7 @@ exports.handler = skillBuilder
     GetSubmissionScoresIntentHandler,
     CourseStudentsIntentHandler,
     GetStudentsIntentHandler,
+    TotalStudentsIntentHandler,
     HelpIntentHandler,
     CancelAndStopIntentHandler,
     SessionEndedRequestHandler
