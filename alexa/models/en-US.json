@@ -86,7 +86,6 @@
             }
           ],
           "samples": [
-            "How many students are in my class",
             "what students are taking my class",
             "what students are taking {course}",
             "what students are taking {course} class",
@@ -129,6 +128,28 @@
             "what are my submission scores in {course}",
             "what are my assignment scores in {course}",
             "what are my assignment grades in {course}"
+          ]
+        },
+        {
+          "name": "TotalStudentsIntent",
+          "slots": [
+            {
+              "name": "course",
+              "type": "AMAZON.SearchQuery",
+              "samples": [
+                "{course}",
+                "index {course}"
+              ]
+            }
+          ],
+          "samples": [
+            "total students",
+            "how many students are in my class",
+            "how many people are in my class",
+            "what is the number of students in my class",
+            "how many students are in {course}",
+            "how many people are in {course}",
+            "what is the number of students in {course}"
           ]
         }
       ],
