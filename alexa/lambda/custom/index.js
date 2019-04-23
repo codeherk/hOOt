@@ -351,6 +351,27 @@ function listStudents(handlerInput, requestedCourse, courses){
   });
 }
 
+function getTotalStudents(handlerInput, requestedCourse, courses){
+  var bestMatch = ld.FinalWord(requestedCourse, courses); // return course id
+  console.log(`Best match for ${requestedCourse}: ${bestMatch.object.id} ,${bestMatch.object.name}`)
+  var courseID = bestMatch.object.id;
+  
+  return new Promise(resolve => {
+    getUsers(courseID, students => {
+      var list = formatStudents(students);
+      var output = `A total of ${students.length} are enrolled in ${bestMatch.object.name}`;
+      //console.log(`list of students: ${list}`);
+      resolve(handlerInput.responseBuilder
+        .speak(output)
+        .withSimpleCard(bestMatch.object.name, "total")
+        .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
+        .getResponse())
+    }).catch(error => {
+       resolve(speakError(handlerInput,`I had trouble getting the total number of students. Try again later.`, error));
+    });
+  });
+}
+
 // https is a default part of Node.JS.  Read the developer doc:  https://nodejs.org/api/https.html
 function buildHttpGetOptions(accessToken) {
   return {
