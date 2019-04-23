@@ -359,7 +359,7 @@ function getTotalStudents(handlerInput, requestedCourse, courses){
   return new Promise(resolve => {
     getUsers(courseID, students => {
       var list = formatStudents(students);
-      var output = `A total of ${students.length} are enrolled in ${bestMatch.object.name}`;
+      var output = `There are a total of ${students.length} students in your ${bestMatch.object.name} class.`;
       //console.log(`list of students: ${list}`);
       resolve(handlerInput.responseBuilder
         .speak(output)
@@ -775,14 +775,9 @@ const GetStudentsIntentHandler = {
 };
 
 /**
- * Handler for skills TotalStudents Intent.
- * Invokes canHandle() to ensure request is an IntentRequest,
- * matching the declared TotalStudents Intent,
- * and that the status of the dialogState is 'IN_PROGRESS'.
- * Invokes handle() to fetch the user's courses.
- * The user's courses were saved earlier inside an attribute.
- * The seesion attribute contains a course object that is
- * called and is then compared to what the user says next.
+ * Receive initial user input.
+ * Get list of user's classes based on access token in use.
+ * Save courseList as object in session attribute.
  */
 const TotalStudentsIntentHandler = {
   canHandle(handlerInput) {
@@ -810,6 +805,39 @@ const TotalStudentsIntentHandler = {
           getTotalStudents(handlerInput,requestedCourse,courses)
         );
       }
+    }); 
+  },
+};
+/**
+ * Handler for skills TotalStudents Intent.
+ * Invokes canHandle() to ensure request is an IntentRequest,
+ * matching the declared TotalStudents Intent,
+ * and that the status of the dialogState is 'IN_PROGRESS'.
+ * Invokes handle() to fetch the user's courses.
+ * Passes the course object into the getTotalStudents function
+ * which handles the rest.
+ */
+const GetTotalStudentsIntentHandler = {
+  canHandle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request;
+    return request.type === 'IntentRequest' &&
+      request.intent.name === 'TotalStudentsIntent' &&
+      request.dialogState === 'IN_PROGRESS';
+  },
+  handle(handlerInput) {
+    const currentIntent = handlerInput.requestEnvelope.request.intent;
+    var requestedCourse = currentIntent.slots.course.value;
+
+    const attributes = handlerInput.attributesManager.getSessionAttributes();
+    const courses = attributes.courses;
+
+    console.log(`courses in attributes: ${attributes.courses}`);
+    console.log(`Requested: ${requestedCourse}`);
+
+    return new Promise(resolve => {
+      resolve(
+        getTotalStudents(handlerInput,requestedCourse,courses)
+      );
     }); 
   },
 };
@@ -928,6 +956,7 @@ exports.handler = skillBuilder
     CourseStudentsIntentHandler,
     GetStudentsIntentHandler,
     TotalStudentsIntentHandler,
+    GetTotalStudentsIntentHandler,
     HelpIntentHandler,
     CancelAndStopIntentHandler,
     SessionEndedRequestHandler
