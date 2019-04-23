@@ -204,6 +204,22 @@
               }
             }
           ]
+        },
+        {
+          "name": "TotalStudentsIntent",
+          "confirmationRequired": false,
+          "prompts": {},
+          "slots": [
+            {
+              "name": "course",
+              "type": "AMAZON.SearchQuery",
+              "confirmationRequired": false,
+              "elicitationRequired": true,
+              "prompts": {
+                "elicitation": "Elicit.Intent-TotalStudentsIntent.IntentSlot-course"
+              }
+            }
+          ]
         }
       ]
     }, 
@@ -228,6 +244,15 @@
       },
       {
         "id": "Elicit.Intent-CourseStudentsIntent.IntentSlot-course",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "Tell me what course"
+          }
+        ]
+      },
+      {
+        "id": "Elicit.Intent-TotalStudentsIntent.IntentSlot-course",
         "variations": [
           {
             "type": "PlainText",
