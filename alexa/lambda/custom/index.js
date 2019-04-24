@@ -16,7 +16,7 @@
 
 const Alexa = require('ask-sdk-core');
 const axios = require('axios');
-const { Student, Course, Assignment } = require('./canvas');
+const { Student, Course, Assignment, Announcement} = require('./canvas');
 //Helper Function for calling the Cognito /oauth2/userInfo to get user info using the accesstoken
 const https = require('https');
 const ld = require('./levenshtein');
@@ -37,6 +37,8 @@ var courseURL = 'courses?enrollment_state=active';
 var studentURL = '&enrollment_type=student';
 var TA_URL = '&enrollment_type=ta';
 var scoreURL = '&include[]=total_scores';
+var announcementURL = 'announcements?';
+
 /**
  * For the addition of header options including access token to HTTP request
  */
@@ -111,6 +113,61 @@ const mapCourses = function (courses, by) {
 }
 
 /**
+ * Get list of announcements  from 'courses' param.
+ * Format course list into easily vocalized String.
+ * @param {Course []} courses 
+ * @returns {String} list of formatted, vocalizable course names.
+ */
+
+const getAnnouncements = function (courses,callback) {
+  var temp= announcementURL;
+  var courseIDS=mapCourses(courses,'id');
+  for(var i=0;i<courseIDS.length;i++){
+    if (i==(courseIDS.length-1)){
+      temp = temp + 'context_codes[]=course_' + courseIDS[i];
+    }else{
+      temp = temp + 'context_codes[]=course_' + courseIDS[i]+'&';
+    }
+  }
+  return axios.get(url + temp, headerOptions)
+  .then(response => {
+    //log(response) //debug
+    var announcements = [];
+    for(let i = 0; i < response.data.length; i++){
+      announcements.push(new Announcement(response.data[i]));
+    }
+
+    for(let i = 0; i < announcements.length; i++){
+      var msg=announcements[i].message;
+      var new_msg="";
+      var b=1
+      for(let j=0; j<msg.length;j++){
+        if(msg[j]=='<'){
+          b=1;
+          continue;
+        }
+        if(msg[j]=='>'){
+          b=0;
+          continue;
+        }
+        if(b==0){
+          new_msg=new_msg+msg[j];
+        }
+
+      }
+      new_msg=new_msg.split("&amp;").join("and")
+      new_msg=new_msg.split("*").join("")
+      announcements[i].message=new_msg;
+      var cc=announcements[i].context_code;
+      announcements[i].course=courses[courseIDS.indexOf(parseInt(cc.substring(7,)))];
+      
+    }
+    callback(announcements);
+  });
+}
+
+
+/**
  * Get list of course names from 'courses' param.
  * Format course list into easily vocalized String.
  * @param {Course []} courses 
@@ -130,6 +187,26 @@ const coursesToString = function (courses) {
   }else{
     list += 'and ' + titles[i] + '.'; // and <last course name>. 
   }
+  return list;
+}
+
+/**
+ * Get list of annoucements from 'courses' param.
+ * Format announcement list into easily vocalized String.
+ * @param {announcements []} announcements 
+ * @returns {String} list of formatted, vocalizable announcements.
+ */
+
+const announcementsToString = function (announcements) {
+  var list = ''; // set list as empty string
+  var i;
+  // loop thru courses, and format it to string that will be spoken
+  
+  for (i = 0; i < announcements.length-1; i++) {
+    if (announcements[i].message.length>2){
+    list += 'Announcement for your '+announcements[i].course.name+' class: '+announcements[i].message;
+  }
+}
   return list;
 }
 
@@ -599,6 +676,43 @@ const AssignmentIntentHandler = {
     });
   },
 };
+
+/**
+ * Handler for skills GetAssignment Intent.
+ * Invokes canHandle() to ensure request is an IntentRequest,
+ * matching the declared Assignment Intent,
+ * and that the status of the dialogState is 'IN_PROGRESS'.
+ * Invokes handle() to fetch list of upcoming assignments for the best match to the user's
+ * initially vocalized course, and vocalizes that list to the user.
+ */
+const AnnouncementIntentHandler = {
+  canHandle(handlerInput) {
+    return handlerInput.requestEnvelope.request.type === 'IntentRequest' &&
+      handlerInput.requestEnvelope.request.intent.name === 'AnnouncementIntent';
+  },
+  handle(handlerInput) {
+    return new Promise(resolve => {
+      getCourses(courses => {
+        getAnnouncements(courses, announcements => {
+          var question = ' Anything else I can help you with?';
+          var announcements=announcementsToString(announcements);
+          var speechText = 'Here are your announcements: ' + (announcements);
+          resolve(handlerInput.responseBuilder
+            .speak(speechText + question)
+            .withStandardCard("Here are your announcements", speechText, smallImgUrl, largeImgUrl)
+            .withShouldEndSession(false)
+            .getResponse()          
+          )
+        }
+        )
+      })
+      .catch(error => {
+        resolve(speakError(handlerInput,'I am having a little trouble getting your current announcements. Try again later.', error));
+      });
+    });
+  }
+}
+
 
 /**
  * Handler for skills GetAssignment Intent.
