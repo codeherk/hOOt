@@ -9,6 +9,11 @@ const ascii_art =
 const h2p = require('html2plaintext');
 const moment = require('moment');
 
+function Student(obj) {
+    this.id = obj.id;
+    this.name = obj.name;
+}
+
 /**
  * Represents a single course retrieved by a GET call to the Canvas API
  * @constructor
@@ -18,11 +23,12 @@ function Course(obj) {
     this.id = obj.id;
     // format course name
     var name = obj.name;
-    
-    if (name.includes('Spring')) {
-        name = name.split('Spring')[0];
+    var year = moment().year()
+    if (name.includes(year)) {
+        name = name.split(year)[0];
         name = name.split('-')[0];
     }
+
 
     name = name.split('sec')[0];
     if (name.includes('-')) {
@@ -58,8 +64,9 @@ function Announcement(obj) {
 }
 
 module.exports = {
+    ascii_art,
+    Student,
     Course,
     Assignment,
-    ascii_art,
     Announcement
 }

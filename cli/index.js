@@ -22,7 +22,7 @@
 
  // install packages
 const axios = require('axios');
-const { Course, Assignment, Announcement, ascii_art } = require('./canvas');
+const { Student, Course, Assignment, Announcement, ascii_art } = require('./canvas');
 const { access_token } = require('./config');
 const ld = require('./levenshtein');
 
@@ -344,31 +344,66 @@ const submissionScoresToString = function(assignments) {
  * @param {String} courseID 
  * @param {function} callback 
  */
-const getContentExports = function (courseID,callback) {
+const getContentExports = function (courseID, callback) {
   var result = url + 'courses/' + courseID + '/content_exports';
   return axios.get(result, headerOptions)
     .then(res => {
       log(res.data);
       callback(res.data);
     });
-  }
-
-  /**
-   * Makes an HTTP GET request to Canvas LMS API.
-   * Receives response from API containing list of all students enrolled in a course with the given Course ID.
-   * Calls callback function, passing in response as param. 
-   * @param {String} courseID 
-   * @param {function} callback 
-   */
-  const getUsers = function (courseID,callback) {
-    var result = url + 'courses/' + courseID + '/users' + '?enrollment_type[]=student';
-
-    return axios.get(result, headerOptions)
-    .then(response => {
-      //log(response) //debug
-      log(response.headers)
-      //callback(response);
+}
+/**
+ * Makes an HTTP GET request to Canvas LMS API.
+ * Receives response from API containing list of all students enrolled in a course with the given Course ID.
+ * Calls callback function, passing in response as param. 
+ * @param {String} courseID 
+ * @param {function} callback 
+*/
+const getUsers = function (courseID, callback) {
+  var result = url + 'courses/' + courseID + '/users' + '?enrollment_type[]=student';
+  //log(result);
+  return get(result).then(data => {
+    var students = [];
+    // create student objects
+    data.forEach(obj => {
+      students.push(new Student(obj));
     });
+    callback(students);
+  });
+}
+
+function get(url, data = []) {
+  return axios.get(url,headerOptions)
+    .then(response => {
+      data = data.concat(response.data);
+      // get next data from next link if possible
+      var linklist = response.headers['link'].split(",");
+      var nextLink = linklist.filter((link) => link.split(";")[1].includes("next"));
+      
+      if (nextLink && nextLink.length) {
+        nextLink = nextLink[0].split(";")[0];
+        nextLink = nextLink.substring(1, nextLink.length - 1);
+        log('NEXT LINK:\n' + nextLink);
+        return get(nextLink, data)
+      }else{
+        return data
+      }
+    });
+}
+
+function formatStudents(students,by = 'full'){
+  var string = '';
+  let i = 0;
+  if(by == 'first'){
+    students = students.map(student => student.name.split(' ')[0]);
+  }else{
+    students = students.map(student => student.name);
+  }
+  for (; i < students.length - 1; i++) {
+    string += `${students[i]}, `;
+  }
+  string += `and ${students[i]}.`;
+  return string;
 }
 
 /********************************************************************************************/
@@ -377,11 +412,11 @@ const getContentExports = function (courseID,callback) {
 
 //log(ascii_art);
 
-/*getCourses(courses => {
+getCourses(courses => {
 
   var speechText = '\n\nYou are currently enrolled in: ' + coursesToString(courses);
-  log(speechText);
-  log("Your current grades are as follows: " + courseGradesToString(courses));
+  //log(speechText);
+  //log("Your current grades are as follows: " + courseGradesToString(courses));
 
   var courseIDs = mapCourses(courses,'id');
   //log(courseIDs);
@@ -395,6 +430,7 @@ const getContentExports = function (courseID,callback) {
   getAnnouncements(courseIDs, announcements => {
     for( let i=0;i<announcements.length;i++){
       log((announcements[i].message));
+      //log((announcements[i].title));
     }
   }).catch(error => {
     log("Could not get announcements. " + error, red);
@@ -403,7 +439,7 @@ const getContentExports = function (courseID,callback) {
 }).catch(error => {
   log("Could not get courses. " + error, red);
 });
-
+/*
 getTACourses(courses => {
   //var courseIDs = formatCourses(courses,'id');
   var courseIDs = mapCourses(courses,'id');
@@ -429,16 +465,23 @@ getTACourses(courses => {
   log("Could not get courses. " + error, red);
 });*/
 
-getCourses(courses => {
-  var courseIDs = mapCourses(courses,'id');
+// getCourses(courses => {
+//   var courseIDs = mapCourses(courses,'id');
+//   var courseName = mapCourses(courses,'name')
   
   //receive grades for ALL submitted assignments in ALL registered courses.
-  for (var i = 0; i < courseIDs.length; i++) {
-    getAssignments(courseIDs[i], true, tasks => {
-      log(submissionScoresToString(tasks));
-      log('\n');
-    });
-  }
-});
+  // for (var i = 0; i < courseIDs.length; i++) {
+  //   getAssignments(courseIDs[i], true, tasks => {
+  //     log(submissionScoresToString(tasks));
+  //     log('\n');
+  //   });
+  // }
+
+  getUsers(courseIDs[0], res => {
+    //log(res);
+    log(`Students in ${courses[0].name}`,cyan)
+    //log(formatStudents(res));
+    log(formatStudents(res,'first'));
+  });
 
 
