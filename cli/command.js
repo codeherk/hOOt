@@ -357,24 +357,11 @@ program
               console.log(answers.task);
               var task = tasks.filter(e => { return e.name == answers.task })[0];
               console.log('assignment download url: ' + task.download);
-            //   axios.get(
-            //     task.download,
-            //     {responseType: 'arraybuffer'}
-            //  ).then(res => {
-            //    console.log(res.headers)
-            //  });
-              // fs.writeFile(`${task.name.replace(' ','_') + '_submissions'}`, task.download, {encoding: 'null'}, (err) => {
-              //   if(err){
-              //     console.log('There was an issue downloading the submissions' + err.toString());
-              //   }
-              // })
-              download(task.download, './').then(() => {
-                console.log('done!');
-            });
-              //console.log
+
+              // download(task.download, './').then(() => {
+              //   console.log('done!');
+              // });
             })
-            
-            
           })
         })
       }).catch(err => {
