@@ -377,14 +377,14 @@ const getUsers = function (courseID, callback) {
     callback(students);
   });
 }
-// axios HTTP request to get the name of a professor
-// axios.get(url + 'courses/' + '54102' + '/users' + '?enrollment_type[]=teacher',headerOptions)
-//   .then(function(response) {
-//     log(response.data[0].name);
-//   }).catch(function (error) {
-//     console.log(error);
-//   });
 
+/**
+ * Makes an HTTP GET request to Canvas LMS API.
+ * Receives response from API containing the name of the professor for the given Course ID.
+ * Calls callback function, passing in response as param. 
+ * @param {String} courseID 
+ * @param {function} callback 
+*/
 const getProfessor = function (courseID, callback) {
   var result = url + 'courses/' + courseID + '/users' + '?enrollment_type[]=teacher';
   return get(result).then(data => {
@@ -510,6 +510,5 @@ getTACourses(courses => {
 //     log(formatStudents(res,'first'));
 //   });
 // });
-
 
 
