@@ -885,11 +885,14 @@ const HelpIntentHandler = {
     ];
 
     var chooseRandomSample = Math.floor(Math.random() * examples.length);
+    var chooseOtherRandomSample = Math.floor(Math.random() * examples.length);
 
-    const intentsText= "You can say things like. " + examples[chooseRandomSample] + " Please say a command. ";
+    const intentsText= "You can say things like. " + examples[chooseRandomSample] + "or, " 
+    + examples[chooseOtherRandomSample] + " Please say a command. ";
     const speechText = 'Hoot can answer questions about your canvas account! ' + intentsText;
 
     chooseRandomSample = Math.floor(Math.random() * examples.length);
+    chooseOtherRandomSample = Math.floor(Math.random() * examples.length);
 
     return handlerInput.responseBuilder
       .speak(speechText)
