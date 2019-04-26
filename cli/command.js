@@ -170,10 +170,14 @@ const isHeadersValid = function(){
 /******************************* END OF FUNCTION DECLARATIONS *******************************/
 /********************************************************************************************/
  
+
+// input "hoot --version"
 program
     .version(ascii_art+'\n0.1.0')
     .description(ascii_art);
 
+// input "hoot init"
+// asks user to type in canvas access token, saves it to .hoot_config (a hidden file)
 program
     .command('init')
     .alias('i')
@@ -198,6 +202,8 @@ program
          })
     });
     
+// input "hoot courses"
+// lists the courses the user is currently enrolled in
 program
     .command('courses')
     .alias('c')
@@ -217,6 +223,8 @@ program
         }
     });
  
+// input "hoot assignments"
+// asks user to select a course, then lists the assignments for that specified course
 program
    .command('assignments')
    .alias('a')
@@ -254,6 +262,8 @@ program
     }
    });
  
+// input "hoot assignments-grades" or "hoot ag"
+// asks user to select a course, then lists the assignments grade for that course
 program
    .command('assignment-grades')
    .alias('ag')
@@ -297,8 +307,12 @@ program
        })
      })
    });
-   
-   program
+
+
+// DOES NOT WORK
+// input "hoot submissions-download" or "hoot sd"
+// asks user to select a course, then assignment, then prints the download url assignment
+program
    .command('submissions-download')
    .alias('sd')
    .description('submissions-download')
