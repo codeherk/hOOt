@@ -23,8 +23,10 @@
  // install packages
 const axios = require('axios');
 const { Student, Course, Assignment, Announcement, ascii_art } = require('./canvas');
-const { access_token } = require('./config');
-const ld = require('./levenshtein');
+//const { access_token } = require('./config');
+//const ld = require('./levenshtein');
+
+const access_token = 'No longer using .config so paste access_token in here';
 
 //var access_token = "ACCESS TOKEN GOES HERE" // NEVER, EVER PUSH YOUR ACCESS TOKEN UP TO GITHUB
 
@@ -150,6 +152,10 @@ const coursesToString = function(courses){
     list += 'and ' + titles[i] + '.'; // and <last course name>. 
   }
   return list;
+}
+
+const professorToString = function(professor) {
+  return 
 }
 
 /**
@@ -372,6 +378,26 @@ const getUsers = function (courseID, callback) {
   });
 }
 
+/**
+ * Makes an HTTP GET request to Canvas LMS API.
+ * Receives response from API containing the name of the professor for the given Course ID.
+ * Calls callback function, passing in response as param. 
+ * @param {String} courseID 
+ * @param {function} callback 
+*/
+const getProfessor = function (courseID, callback) {
+  var result = url + 'courses/' + courseID + '/users' + '?enrollment_type[]=teacher';
+  return get(result).then(data => {
+    // var professors = []
+    // for (let i = 0; i < data.length; i++){
+    //   professors.push(data[i].name);
+    // }
+    var professor = data[0].name;
+    //console.log(teacher);
+    callback(professor);
+  });
+}
+
 function get(url, data = []) {
   return axios.get(url,headerOptions)
     .then(response => {
@@ -422,14 +448,14 @@ getCourses(courses => {
   //log(courseIDs);
   
   getUpcomingAssignments(courseIDs[0], tasks => {
-    log(formatAssignments(tasks))
+    //log(formatAssignments(tasks))
   }).catch(error => {
     log("Could not get assignments. " + error, red);
   });
   //get annoucements
   getAnnouncements(courseIDs, announcements => {
     for( let i=0;i<announcements.length;i++){
-      log((announcements[i].message));
+      //log((announcements[i].message));
       //log((announcements[i].title));
     }
   }).catch(error => {
@@ -465,23 +491,33 @@ getTACourses(courses => {
   log("Could not get courses. " + error, red);
 });*/
 
-// getCourses(courses => {
-//   var courseIDs = mapCourses(courses,'id');
-//   var courseName = mapCourses(courses,'name')
+//  getCourses(courses => {
+//    var courseIDs = mapCourses(courses,'id');
+//    var courseName = mapCourses(courses,'name')
   
+//   //receive grades for ALL submitted assignments in ALL registered courses.
+//   for (var i = 0; i < courseIDs.length; i++) {
+//     getAssignments(courseIDs[i], true, tasks => {
+//       log(submissionScoresToString(tasks));
+//       log('\n');
+//     });
+//   }
+
+//   getUsers(courseIDs[0], res => {
+//     //log(res);
+//     log(`Students in ${courses[0].name}`,cyan)
+//     //log(formatStudents(res));
+//     log(formatStudents(res,'first'));
+//   });
+// });
+
+// ************************* Tested getProfessor function ************************
+getCourses(courses => {
   //receive grades for ALL submitted assignments in ALL registered courses.
-  // for (var i = 0; i < courseIDs.length; i++) {
-  //   getAssignments(courseIDs[i], true, tasks => {
-  //     log(submissionScoresToString(tasks));
-  //     log('\n');
-  //   });
-  // }
-
-  getUsers(courseIDs[0], res => {
-    //log(res);
-    log(`Students in ${courses[0].name}`,cyan)
-    //log(formatStudents(res));
-    log(formatStudents(res,'first'));
-  });
-
-
+  var courseIDs = mapCourses(courses,'id');
+     getProfessor(courseIDs[3], res => {
+       var courseName = mapCourses(courses,'name')
+       log(`Your professor for ${courseName[3]} is ` + res + '.', cyan)
+       //log(res);
+     });
+ });
