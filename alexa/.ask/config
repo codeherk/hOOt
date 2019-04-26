@@ -10,7 +10,7 @@
         },
         "interactionModel": {
           "en-US": {
-            "eTag": "da9f25323a6f885bfcab3e70d20bb34c"
+            "eTag": "204e3bc9223a6b767e3cdc858d30c590"
           }
         },
         "lambda": [
@@ -23,7 +23,7 @@
             "codeUri": "lambda/custom",
             "functionName": "getCourses",
             "handler": "index.handler",
-            "revisionId": "9b9281ac-48ad-404d-838d-bea69798b62d",
+            "revisionId": "a5107dea-d801-4664-b9b8-2d42808801bb",
             "runtime": "nodejs8.10"
           }
         ]
