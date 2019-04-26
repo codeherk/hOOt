@@ -361,4 +361,13 @@ program
     }
    });
  
-   program.parse(process.argv);
+program.parse(process.argv);
+
+// Check the program.args obj
+var NO_COMMAND_SPECIFIED = program.args.length === 0;
+
+// Handle it however you like
+if (NO_COMMAND_SPECIFIED) {
+  // e.g. display usage
+  program.help();
+}   
