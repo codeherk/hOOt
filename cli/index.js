@@ -511,4 +511,13 @@ getTACourses(courses => {
 //   });
 // });
 
-
+// ************************* Tested getProfessor function ************************
+getCourses(courses => {
+  //receive grades for ALL submitted assignments in ALL registered courses.
+  var courseIDs = mapCourses(courses,'id');
+     getProfessor(courseIDs[3], res => {
+       var courseName = mapCourses(courses,'name')
+       log(`Your professor for ${courseName[3]} is ` + res + '.', cyan)
+       //log(res);
+     });
+ });
