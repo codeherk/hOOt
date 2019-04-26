@@ -419,7 +419,7 @@ function listStudents(handlerInput, requestedCourse, courses){
       console.log(`list of students: ${list}`);
       resolve(handlerInput.responseBuilder
         .speak(output)
-        .withSimpleCard(bestMatch.object.name, "list")
+        .withSimpleCard(bestMatch.object.name, list)
         .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
         .getResponse())
     }).catch(error => {
@@ -581,7 +581,14 @@ const TACoursesIntentHandler = {
     return new Promise(resolve => {
       getTACourses(courses => {
         var question = ' Anything else I can help you with?';
-        var speechText = 'You are currently teaching: ' + coursesToString(courses);
+        var taughtCourses =  coursesToString(courses);
+        console.log(taughtCourses);
+        var speechText = 'You are currently teaching: ';
+        if(taughtCourses == 'undefined.'){
+          speechText = 'You are not teaching any courses as of now.';
+        }else{
+          speechText += coursesToString(courses);
+        }
         resolve(handlerInput.responseBuilder
           .speak(speechText + question)
           .withStandardCard("Teaching Courses", speechText, smallImgUrl, largeImgUrl)
@@ -777,13 +784,39 @@ const SubmissionScoresIntentHandler = {
       handlerInput.requestEnvelope.request.dialogState === 'STARTED';
   },
   handle(handlerInput) {
-    const intent = handlerInput.requestEnvelope.request.intent;
+    const currentIntent = handlerInput.requestEnvelope.request.intent;
+    var requestedCourse = currentIntent.slots.course.value;
 
+    const attributes = handlerInput.attributesManager.getSessionAttributes();
+    const courses = attributes.courses
+
+    
     return new Promise(resolve => {
-      resolve(handlerInput.responseBuilder
-        .addDelegateDirective(intent)
-        .getResponse()
-      )
+      if(requestedCourse === undefined){
+        resolve(handlerInput.responseBuilder
+          .addDelegateDirective(currentIntent)
+          .getResponse()
+          );
+      }else{
+        // find the closest match to the user's utterance in classes
+        var bestMatch = ld.FinalWord(requestedCourse, courses);
+        //get ID of course returned as best match
+        var courseID = bestMatch.object.id;
+        
+        //var classes = mapCourses(classes, 'name');
+        getAssignments(courseID, true, '', tasks => {
+          var response = submissionScoresToString(tasks);
+          var output = `In ${bestMatch.object.name}, ${response}`;
+    
+          resolve(handlerInput.responseBuilder
+            .speak(output)
+            .withSimpleCard(bestMatch.object.name, output)
+            .withShouldEndSession(false)
+            .getResponse())
+        }).catch(error => {
+          resolve(speakError(handlerInput, 'I had trouble getting your submission scores. Try again later', error))
+        });
+      }
     });
   },
 };

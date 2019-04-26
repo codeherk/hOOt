@@ -54,6 +54,7 @@ function Assignment(obj) {
     this.due = obj.due_at ? moment(obj.due_at).format('LLL') : null; // ternary operator moment().format('MMMM Do YYYY, h:mm:ss a');
     this.points_possible = obj.points_possible;
     this.submission = obj.submission;
+    this.download = obj.submissions_download_url;
 }
 
 function Announcement(obj) {

@@ -91,6 +91,9 @@
             "who is in my class",
             "what students are taking {course}",
             "what students are taking {course} class",
+            "how many students are taking {course} class",
+            "how many students are enrolled in {course}",
+            "how many students are in {course}",
             "who is in {course}",
             "who am I taking {course} with"
           ]
@@ -126,7 +129,9 @@
             "what are my assignment scores",
             "what are my assignment grades",
             "what are my submission scores in {course}",
+            "what are my submission scores for {course}",
             "what are my assignment scores in {course}",
+            "what are my assignment scores for {course}",
             "what are my assignment grades in {course}"
           ]
         },

@@ -23,10 +23,15 @@
  // install packages
 const axios = require('axios');
 const { Student, Course, Assignment, Announcement, ascii_art } = require('./canvas');
+<<<<<<< HEAD
 //const { access_token } = require('./config');
 //const ld = require('./levenshtein');
 
 const access_token = 'No longer using .config so paste access_token in here';
+=======
+const { access_token } = require('./config');
+//const ld = require('./levenshtein');
+>>>>>>> codeherk
 
 //var access_token = "ACCESS TOKEN GOES HERE" // NEVER, EVER PUSH YOUR ACCESS TOKEN UP TO GITHUB
 
@@ -336,11 +341,11 @@ const submissionScoresToString = function(assignments) {
         if (percent % 1 != 0) {
           percent = ((submissionScore / pointsPossible) * 100).toFixed(2);
         }
-        scoresString += `Your score for ${assignmentName}, is ${percent} percent. `;
+        scoresString += `${assignmentName}, ${percent} percent. `;
       }
     }
   }
-  return 'Your submission scores are as follows. ' + scoresString;
+  return 'Your submission scores are as follows: ' + scoresString;
 }
 
 /**
@@ -367,7 +372,7 @@ const getContentExports = function (courseID, callback) {
 */
 const getUsers = function (courseID, callback) {
   var result = url + 'courses/' + courseID + '/users' + '?enrollment_type[]=student';
-  //log(result);
+  log(result);
   return get(result).then(data => {
     var students = [];
     // create student objects
@@ -409,7 +414,7 @@ function get(url, data = []) {
       if (nextLink && nextLink.length) {
         nextLink = nextLink[0].split(";")[0];
         nextLink = nextLink.substring(1, nextLink.length - 1);
-        log('NEXT LINK:\n' + nextLink);
+        //log('NEXT LINK:\n' + nextLink);
         return get(nextLink, data)
       }else{
         return data
@@ -438,15 +443,16 @@ function formatStudents(students,by = 'full'){
 
 //log(ascii_art);
 
-getCourses(courses => {
+// getCourses(courses => {
 
-  var speechText = '\n\nYou are currently enrolled in: ' + coursesToString(courses);
-  //log(speechText);
-  //log("Your current grades are as follows: " + courseGradesToString(courses));
+//   var speechText = '\n\nYou are currently enrolled in: ' + coursesToString(courses);
+//   //log(speechText);
+//   //log("Your current grades are as follows: " + courseGradesToString(courses));
 
-  var courseIDs = mapCourses(courses,'id');
-  //log(courseIDs);
+//   var courseIDs = mapCourses(courses,'id');
+//   //log(courseIDs);
   
+<<<<<<< HEAD
   getUpcomingAssignments(courseIDs[0], tasks => {
     //log(formatAssignments(tasks))
   }).catch(error => {
@@ -467,6 +473,27 @@ getCourses(courses => {
 });
 /*
 getTACourses(courses => {
+=======
+//   getUpcomingAssignments(courseIDs[0], tasks => {
+//     log(formatAssignments(tasks))
+//   }).catch(error => {
+//     log("Could not get assignments. " + error, red);
+//   });
+//   //get annoucements
+//   getAnnouncements(courseIDs, announcements => {
+//     for( let i=0;i<announcements.length;i++){
+//       log((announcements[i].message));
+//     }
+//   }).catch(error => {
+//     log("Could not get announcements. " + error, red);
+//   });
+
+// }).catch(error => {
+//   log("Could not get courses. " + error, red);
+// });
+
+/*getTACourses(courses => {
+>>>>>>> codeherk
   //var courseIDs = formatCourses(courses,'id');
   var courseIDs = mapCourses(courses,'id');
   var speechText = 'You are currently teaching: ' + coursesToString(courses);
@@ -510,6 +537,7 @@ getTACourses(courses => {
 //     log(formatStudents(res,'first'));
 //   });
 // });
+<<<<<<< HEAD
 
 // ************************* Tested getProfessor function ************************
 getCourses(courses => {
@@ -521,3 +549,5 @@ getCourses(courses => {
        //log(res);
      });
  });
+=======
+>>>>>>> codeherk
