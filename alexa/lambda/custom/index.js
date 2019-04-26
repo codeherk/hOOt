@@ -1085,6 +1085,7 @@ exports.handler = skillBuilder
     TACoursesIntentHandler,
     AssignmentIntentHandler,
     GetAssignmentIntentHandler,
+    AnnouncementIntentHandler,
     SubmissionScoresIntentHandler,
     GetSubmissionScoresIntentHandler,
     CourseStudentsIntentHandler,
