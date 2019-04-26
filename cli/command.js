@@ -1,32 +1,10 @@
-//   ██████╗ █████╗ ███╗   ██╗██╗   ██╗ █████╗ ███████╗     █████╗ ██████╗ ██╗
-//  ██╔════╝██╔══██╗████╗  ██║██║   ██║██╔══██╗██╔════╝    ██╔══██╗██╔══██╗██║
-//  ██║     ███████║██╔██╗ ██║██║   ██║███████║███████╗    ███████║██████╔╝██║
-//  ██║     ██╔══██║██║╚██╗██║╚██╗ ██╔╝██╔══██║╚════██║    ██╔══██║██╔═══╝ ██║
-//  ╚██████╗██║  ██║██║ ╚████║ ╚████╔╝ ██║  ██║███████║    ██║  ██║██║     ██║
-//   ╚═════╝╚═╝  ╚═╝╚═╝  ╚═══╝  ╚═══╝  ╚═╝  ╚═╝╚══════╝    ╚═╝  ╚═╝╚═╝     ╚═╝
-
-
-/**
- * This file is part of the hooT VUI system.
- * It is a command line program
- * for the gathering of JSON data from the Canvas LMS API.
- * Running the program on its own will result in the return of various JSON data
- * from the Canvas API.
- * Received data depends on the provided Canvas access token.
- * @version 1.0
- * @author Byron Jenkins 
- * @author Erik Rosales
- * @author Kyle Lee
- * @author Terrell Nowlin
- * @author Brendan Connelly
- */
+#!/usr/bin/env node
 
 // install packages
 const axios = require('axios');
 const { Student, Course, Assignment, Announcement, ascii_art } = require('./canvas.js');
 //const ld = require('./levenshtein');
 
-//#!/usr/bin/env node
 const fs = require('fs');
 const inquirer = require('inquirer');
 const program = require('commander');
@@ -47,7 +25,7 @@ var ignoreCourses = ['CIS Student Community Fall 2018', 'TU Alliance for Minorit
 
 const getToken = function(){
   try {
-    var data = fs.readFileSync(".as")
+    var data = fs.readFileSync("./.hoot_config")
     // extract token from file
     var str = data.toString().split('\n');
     if(str[0] == '[token]'){ 
@@ -56,9 +34,9 @@ const getToken = function(){
     }
   } catch (err) {
     if(err.code === 'ENOENT'){
-      console.log('.as file does not exist!');
+      console.log('.hoot_config file does not exist!');
     }else{
-      console.log(err + '.as file does not exist!');
+      console.log(err + '.hoot_config file does not exist!');
     }
   }
   return null;
@@ -201,7 +179,7 @@ program
     .alias('i')
     .description('CLI Setup')
     .action(() => {
-         fs.exists('.as', (exist) => {
+         fs.exists('./.hoot_config', (exist) => {
             if(exist){
               var token = getToken();
               if(token != null) console.log("Access token already given!");
@@ -215,7 +193,7 @@ program
                 ])
                 .then(answers => {
                   console.info(answers.access_token);
-                  fs.writeFileSync('.as',`[token]\n${answers.access_token}`);
+                  fs.writeFileSync('./.hoot_config',`[token]\n${answers.access_token}`);
                 });
          })
     });
