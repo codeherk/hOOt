@@ -23,15 +23,10 @@
  // install packages
 const axios = require('axios');
 const { Student, Course, Assignment, Announcement, ascii_art } = require('./canvas');
-<<<<<<< HEAD
-//const { access_token } = require('./config');
-//const ld = require('./levenshtein');
-
-const access_token = 'No longer using .config so paste access_token in here';
-=======
 const { access_token } = require('./config');
 //const ld = require('./levenshtein');
->>>>>>> codeherk
+
+//const access_token = 'No longer using .config so paste access_token in here';
 
 //var access_token = "ACCESS TOKEN GOES HERE" // NEVER, EVER PUSH YOUR ACCESS TOKEN UP TO GITHUB
 
@@ -452,28 +447,6 @@ function formatStudents(students,by = 'full'){
 //   var courseIDs = mapCourses(courses,'id');
 //   //log(courseIDs);
   
-<<<<<<< HEAD
-  getUpcomingAssignments(courseIDs[0], tasks => {
-    //log(formatAssignments(tasks))
-  }).catch(error => {
-    log("Could not get assignments. " + error, red);
-  });
-  //get annoucements
-  getAnnouncements(courseIDs, announcements => {
-    for( let i=0;i<announcements.length;i++){
-      //log((announcements[i].message));
-      //log((announcements[i].title));
-    }
-  }).catch(error => {
-    log("Could not get announcements. " + error, red);
-  });
-
-}).catch(error => {
-  log("Could not get courses. " + error, red);
-});
-/*
-getTACourses(courses => {
-=======
 //   getUpcomingAssignments(courseIDs[0], tasks => {
 //     log(formatAssignments(tasks))
 //   }).catch(error => {
@@ -493,7 +466,6 @@ getTACourses(courses => {
 // });
 
 /*getTACourses(courses => {
->>>>>>> codeherk
   //var courseIDs = formatCourses(courses,'id');
   var courseIDs = mapCourses(courses,'id');
   var speechText = 'You are currently teaching: ' + coursesToString(courses);
@@ -537,7 +509,6 @@ getTACourses(courses => {
 //     log(formatStudents(res,'first'));
 //   });
 // });
-<<<<<<< HEAD
 
 // ************************* Tested getProfessor function ************************
 getCourses(courses => {
@@ -549,5 +520,3 @@ getCourses(courses => {
        //log(res);
      });
  });
-=======
->>>>>>> codeherk

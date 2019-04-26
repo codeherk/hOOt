@@ -23,15 +23,15 @@
 
 // install packages
 const axios = require('axios');
-const { Student, Course, Assignment, Announcement, ascii_art } = require('./canvas');
-const { access_token } = require('./config');
+const { Student, Course, Assignment, Announcement, ascii_art } = require('./canvas.js');
 //const ld = require('./levenshtein');
 
 //#!/usr/bin/env node
 const fs = require('fs');
 const inquirer = require('inquirer');
 const program = require('commander');
-const moment = require('moment');
+const download = require('download');
+//const moment = require('moment');
 
 // base URL for HTTP requests to the Canvas LMS API
 var url = `https://templeu.instructure.com/api/v1/`;
@@ -42,7 +42,9 @@ var announcementsURL = 'announcements?'
 var studentURL = '&enrollment_type=student';
 var TA_URL = '&enrollment_type=ta';
 var scoreURL = '&include[]=total_scores';
- 
+
+var ignoreCourses = ['CIS Student Community Fall 2018', 'TU Alliance for Minority Participation (AMP) Program', 'Computer Science, Math, and Physics (CMP) Students'];
+
 const getToken = function(){
   try {
     var data = fs.readFileSync(".as")
@@ -52,28 +54,28 @@ const getToken = function(){
       //console.log(str[1]);
       return str[1];
     }
-    return 'nothing';
   } catch (err) {
     if(err.code === 'ENOENT'){
       console.log('.as file does not exist!');
     }else{
       console.log(err + '.as file does not exist!');
     }
-    return 'nothing';
   }
+  return null;
 }
 
  /**
   * For the addition of header options including access token to HTTP request
   */
 
-const headerOptions = {
+const getHeaderOptions = function(){
+  return {
     headers: { 
-        Authorization: 'Bearer ' + getToken()//access_token
+      Authorization: 'Bearer ' + getToken()//access_token
     }
+  }
 };
  
-var ignoreCourses = ['CIS Student Community Fall 2018', 'TU Alliance for Minority Participation (AMP) Program', 'Computer Science, Math, and Physics (CMP) Students'];
 
 /********************************************************************************************/
 /*********************************** FUNCTION DECLARATIONS **********************************/
@@ -101,7 +103,7 @@ const log = function (){
      * @param {function} callback 
 */
 const getCourses = function (callback) {
-    return axios.get(url + courseURL + studentURL + scoreURL, headerOptions)
+    return axios.get(url + courseURL + studentURL + scoreURL, getHeaderOptions())
     .then(response => {
       //log(response) //debug
       var courses = [];
@@ -122,7 +124,7 @@ const getCourses = function (callback) {
      * @param {function} callback 
 */
 const getTACourses = function (callback) {
-    return axios.get(url + courseURL + TA_URL, headerOptions)
+    return axios.get(url + courseURL + TA_URL, getHeaderOptions())
     .then(response => {
       //log(response) //debug
       var courses = [];
@@ -166,7 +168,7 @@ const getAssignments = function (courseID, includeSubmissions, callback) {
       request += '?include[]=submission';    
     }
 
-    return axios.get(request, headerOptions)
+    return axios.get(request, getHeaderOptions())
       .then(response => {
         var data = response.data;
         var assignments = [];
@@ -177,10 +179,8 @@ const getAssignments = function (courseID, includeSubmissions, callback) {
       });
 }
   
- 
-
 const isHeadersValid = function(){
-  var a = headerOptions.headers.Authorization.split(' ');
+  var a = getHeaderOptions().headers.Authorization.split(' ');
   //console.log(a)
   if(a[1] != null){
     return true
@@ -191,8 +191,6 @@ const isHeadersValid = function(){
 /********************************************************************************************/
 /******************************* END OF FUNCTION DECLARATIONS *******************************/
 /********************************************************************************************/
-
-var classes;
  
 program
     .version(ascii_art+'\n0.1.0')
@@ -321,8 +319,7 @@ program
        })
      })
    });
-   const download = require('download');
-
+   
    program
    .command('submissions-download')
    .alias('sd')
