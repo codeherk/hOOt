@@ -408,7 +408,7 @@ function formatStudents(students, by = 'full'){
 function listStudents(handlerInput, requestedCourse, courses){
   //console.log(`Inside list students. courses: ${courses}`);
   //compare requestedCourse with course array
-  var bestMatch = ld.FinalWord(requestedCourse, courses); // return course id
+  var bestMatch = ld.MatchMaker(requestedCourse, courses); // return course id
   console.log(`Best match for ${requestedCourse}: ${bestMatch.object.id} ,${bestMatch.object.name}`)
   var courseID = bestMatch.object.id;
   
@@ -429,7 +429,7 @@ function listStudents(handlerInput, requestedCourse, courses){
 }
 
 function getTotalStudents(handlerInput, requestedCourse, courses){
-  var bestMatch = ld.FinalWord(requestedCourse, courses); // return course id
+  var bestMatch = ld.MatchMaker(requestedCourse, courses); // return course id
   console.log(`Best match for ${requestedCourse}: ${bestMatch.object.id} ,${bestMatch.object.name}`)
   var courseID = bestMatch.object.id;
   
@@ -655,7 +655,7 @@ const AssignmentIntentHandler = {
           .getResponse()
         );
       }else {
-        var bestMatch = ld.FinalWord(requestedCourse, courses); // return course id
+        var bestMatch = ld.MatchMaker(requestedCourse, courses); // return course id
         var courseID = bestMatch.object.id;
 
         getUpcomingAssignments(courseID, tasks => {
@@ -739,7 +739,7 @@ const GetAssignmentIntentHandler = {
 
     return new Promise(resolve => {
       //compare requestedCourse with course array
-      var bestMatch = ld.FinalWord(requestedCourse, courses); // return course id
+      var bestMatch = ld.MatchMaker(requestedCourse, courses); // return course id
       /**
        * bestMatch.object.{.name, .id, .position, .match, .distance}
        * bestMatch.status = {100 = good, 401 = null array}
@@ -812,7 +812,7 @@ const GetSubmissionScoresIntentHandler = {
 
     return new Promise(resolve => {
       // find the closest match to the user's utterance in classes
-      var bestMatch = ld.FinalWord(requestedCourse, courses);
+      var bestMatch = ld.MatchMaker(requestedCourse, courses);
       //get ID of course returned as best match
       var courseID = bestMatch.object.id;
 
