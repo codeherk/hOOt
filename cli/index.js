@@ -26,7 +26,7 @@ const { Student, Course, Assignment, Announcement, ascii_art } = require('./canv
 //const { access_token } = require('./config');
 //const ld = require('./levenshtein');
 
-const access_token = '9957~rsVxuwVd7HAPmPrVmy6JvCSZO3sb0u92WTLo7ek7xQ2082ibpXc00X3FQbCbSHeY';
+const access_token = 'No longer using .config so paste access_token in here';
 
 //var access_token = "ACCESS TOKEN GOES HERE" // NEVER, EVER PUSH YOUR ACCESS TOKEN UP TO GITHUB
 
