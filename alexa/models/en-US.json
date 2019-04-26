@@ -151,6 +151,27 @@
             "how many people are in {course}",
             "what is the number of students in {course}"
           ]
+        },
+        {
+          "name": "ProfessorNameIntent",
+          "slots": [
+            {
+              "name": "course",
+              "type": "AMAZON.SearchQuery",
+              "samples": [
+                "{course}",
+                "index {course}"
+              ]
+            }
+          ],
+          "samples": [
+            "professor",
+            "who is my teacher",
+            "who is my professor",
+            "who teaches my class",
+            "who is my professor for {course}",
+            "who is my teacher for {course}"
+          ]
         }
       ],
       "types": []
