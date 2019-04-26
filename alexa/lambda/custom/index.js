@@ -872,14 +872,16 @@ const HelpIntentHandler = {
   handle(handlerInput) {
 
     var examples = [
-      "what are my announcements. ", 
+      "what are my announcements. ",
+      "how many students are in my class. ", 
       "what assignments do I have. ", 
       "what are my current course scores. ",
       "what classes am I taking. ",
       "do i have any announcements. ",
       "what homework do I have. ",
       "what are my course scores. ",
-      "what courses am I enrolled in. "
+      "what courses am I enrolled in. ",
+      "how many people are in my class. "
     ];
 
     var chooseRandomSample = Math.floor(Math.random() * examples.length);
