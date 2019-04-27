@@ -196,6 +196,7 @@ const getAssignments = function (courseID, includeSubmissions, callback) {
  * Creates an array of Announcement objects based on API's response.
  * Calls callback function, passiing in Announcement array as param.
  * @param {String []} courseIDS 
+ * @param {Date} startDate 
  * @param {function} callback 
  */
 const getAnnouncements = function (courseIDs, startDate, callback) {
@@ -216,6 +217,27 @@ const getAnnouncements = function (courseIDs, startDate, callback) {
     }
     callback(announcements);
   });
+}
+
+/**
+ * Groups Announcements by the course. 
+ * Returns the announcement array sorted.
+ * @param {Announcement []} announcements 
+ */
+const groupAnnouncements = function(announcements){
+  var notice = announcements.length ? [] : announcements;
+  //console.log(notice);
+  var temp, code;
+  while(announcements.length != 0){
+    // get first announcement context code
+    code = announcements[0].context_code;
+    temp = announcements.filter((notice) => notice.context_code.includes(code));
+    announcements = announcements.filter((notice) => !temp.includes(notice));
+    notice.push(temp);
+  }
+  //console.log(notice);
+  var notice = notice.reduce((acc, val) => acc.concat(val), []);// [1, 2, 3, 4]
+  return notice;
 }
 
 /**
@@ -434,8 +456,10 @@ getCourses(courses => {
   //   log("Could not get assignments. " + error, red);
   // });
 
-  var startDate = moment().subtract(4,'d').format('YYYY-MM-DD');
+  var startDate = moment().subtract(14,'d').format('YYYY-MM-DD');
   getAnnouncements(courseIDs, startDate, announcements => {
+    announcements = groupAnnouncements(announcements);
+    //log(announcements); // debug
     for(let i = 0; i < announcements.length;i++){
       log(`${announcements[i].title} | ${announcements[i].author}`,cyan);
       log(announcements[i].posted_at,cyan);
