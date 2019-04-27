@@ -3,20 +3,24 @@
     "publishingInformation": {
       "locales": {
         "en-US": {
-          "summary": "Sample Short Description",
+          "summary": "Voice User Interface for Canvas (Temple Students)",
           "examplePhrases": [
-            "Alexa open hoot for canvas",
-            "hoot for canvas",
+            "Alexa open hoot",
+            "hoot ",
             "help"
           ],
+          "smallIconUri": "https://www.materialui.co/materialIcons/action/backup_black_108x108.png",
+          "largeIconUri": "https://png.pngtree.com/svg/20170623/490805a89c.png",
           "name": "hoot",
-          "description": "Sample Full Description"
+          "description": "This skill does interesting things."
         }
       },
-      "isAvailableWorldwide": true,
-      "testingInstructions": "Sample Testing Instructions.",
-      "category": "KNOWLEDGE_AND_TRIVIA",
-      "distributionCountries": []
+      "isAvailableWorldwide": false,
+      "testingInstructions": "1) Say 'Alexa, open hoot'",
+      "category": "ORGANIZERS_AND_ASSISTANTS",
+      "distributionCountries": [
+        "US"
+      ]
     },
     "apis": {
       "custom": {
@@ -26,6 +30,19 @@
         }
       }
     },
-    "manifestVersion": "1.0"
+    "manifestVersion": "1.0",
+    "privacyAndCompliance": {
+      "allowsPurchases": false,
+      "usesPersonalInfo": false,
+      "isChildDirected": false,
+      "isExportCompliant": true,
+      "containsAds": false,
+      "locales": {
+        "en-US": {
+          "privacyPolicyUrl": "http://www.myprivacypolicy.sampleskill.com",
+          "termsOfUseUrl": "http://www.termsofuse.sampleskill.com"
+        }
+      }
+    }
   }
 }

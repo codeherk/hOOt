@@ -200,7 +200,7 @@ var matchToPhraseBoo = false;
 
 var MatchMaker = (request, course) => {
 
-    var LoveMachine = new DataAggregate(request, course);
+    var LoveMachine = new DataAggregate(testphrase, testArray);
 
     LoveMachine.populateMatchData()
         .populateInputMatch()

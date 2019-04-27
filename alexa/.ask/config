@@ -10,7 +10,7 @@
         },
         "interactionModel": {
           "en-US": {
-            "eTag": "da9f25323a6f885bfcab3e70d20bb34c"
+            "eTag": "204e3bc9223a6b767e3cdc858d30c590"
           }
         },
         "lambda": [
@@ -23,7 +23,11 @@
             "codeUri": "lambda/custom",
             "functionName": "getCourses",
             "handler": "index.handler",
+<<<<<<< HEAD
             "revisionId": "a21586e3-8ace-4ac5-bf33-7508278fd593",
+=======
+            "revisionId": "07fbd342-1801-4c26-aee5-aa1a19aeb050",
+>>>>>>> 8f0509a1edf3126b538b77919bc550596bc87e7b
             "runtime": "nodejs8.10"
           }
         ]
@@ -68,7 +72,7 @@
         },
         "interactionModel": {
           "en-US": {
-            "eTag": "66ccb9c9a07ca4d04474d2b6b756a5f9"
+            "eTag": "6154a0509108bae7462a08fc107635af"
           }
         },
         "lambda": [
@@ -81,7 +85,7 @@
             "codeUri": "lambda/custom",
             "functionName": "getCourses",
             "handler": "index.handler",
-            "revisionId": "ebac48a3-c400-4008-94ad-b626d2f20a2b",
+            "revisionId": "0ac2ccff-2efc-4965-89dd-ac85a583a30b",
             "runtime": "nodejs8.10"
           }
         ]
@@ -91,6 +95,40 @@
       "skill_id": "amzn1.ask.skill.b82613cd-3e68-449c-898b-2bc51c766e72",
       "was_cloned": false,
       "merge": {}
+    },
+    "tnowlin": {
+      "skill_id": "",
+      "was_cloned": false,
+      "merge": {}
+    },
+    "leekd99": {
+      "skill_id": "amzn1.ask.skill.b82613cd-3e68-449c-898b-2bc51c766e72",
+      "was_cloned": false,
+      "merge": {},
+      "resources": {
+        "manifest": {
+          "eTag": "88afa1d9823998cbb7bc39e9c01265e4"
+        },
+        "interactionModel": {
+          "en-US": {
+            "eTag": "204e3bc9223a6b767e3cdc858d30c590"
+          }
+        },
+        "lambda": [
+          {
+            "alexaUsage": [
+              "custom/default"
+            ],
+            "arn": "arn:aws:lambda:us-east-1:696734041478:function:getCourses",
+            "awsRegion": "us-east-1",
+            "codeUri": "lambda/custom",
+            "functionName": "getCourses",
+            "handler": "index.handler",
+            "revisionId": "bdf1c01c-b722-49e8-b052-cdd9212cc759",
+            "runtime": "nodejs8.10"
+          }
+        ]
+      }
     }
   }
 }
