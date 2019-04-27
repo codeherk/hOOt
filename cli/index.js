@@ -22,6 +22,7 @@
 
  // install packages
 const axios = require('axios');
+const moment = require('moment');
 const { Student, Course, Assignment, Announcement, ascii_art } = require('./canvas');
 const { access_token } = require('./config');
 //const ld = require('./levenshtein');
@@ -197,41 +198,21 @@ const getAssignments = function (courseID, includeSubmissions, callback) {
  * @param {String []} courseIDS 
  * @param {function} callback 
  */
-const getAnnouncements = function (courseIDS,callback) {
-  var temp= announcementsURL;
-  for (var i = 0; i < courseIDS.length; i++){
-    if (i==(courseIDS.length-1)) {
-      temp = temp + 'context_codes[]=course_' + courseIDS[i];
-    } else {
-      temp = temp + 'context_codes[]=course_' + courseIDS[i]+'&';
-    }
+const getAnnouncements = function (courseIDs, startDate, callback) {
+  // if start date is null, set default days to 7
+  startDate = startDate ? startDate : moment().subtract(7,'d').format('YYYY-MM-DD'); 
+  var result = url + announcementsURL + `context_codes[]=course_${courseIDs[0]}`;
+  for (let i = 1; i < courseIDs.length; i++) {
+    result += `&context_codes[]=course_${courseIDs[i]}`;
   }
-  return axios.get(url + temp, headerOptions)
+  result += `&start_date=${startDate}`;
+  //log(`startDate: ${startDate}`);
+  //log(`request: ${result}`);
+  return axios.get(result, headerOptions)
   .then(response => {
-    //log(response) //debug
     var announcements = [];
     for (let i = 0; i < response.data.length; i++){
       announcements.push(new Announcement(response.data[i]));
-    }
-
-    for(let i = 0; i < announcements.length; i++){
-      var msg = announcements[i].message;
-      var new_msg = "";
-      var b = 1
-      for (let j = 0; j < msg.length; j++) {
-        if (msg[j] == '<') {
-          b = 1;
-          continue;
-        }
-        if (msg[j] == '>') {
-          b = 0;
-          continue;
-        }
-        if (b == 0) {
-          new_msg = new_msg + msg[j];
-        }
-      }
-      announcements[i].message = new_msg;
     }
     callback(announcements);
   });
@@ -438,38 +419,41 @@ function formatStudents(students,by = 'full'){
 
 //log(ascii_art);
 
-// getCourses(courses => {
+getCourses(courses => {
 
-//   var speechText = '\n\nYou are currently enrolled in: ' + coursesToString(courses);
-//   //log(speechText);
-//   //log("Your current grades are as follows: " + courseGradesToString(courses));
+  //var speechText = '\n\nYou are currently enrolled in: ' + coursesToString(courses);
+  //log(speechText);
+  //log("Your current grades are as follows: " + courseGradesToString(courses));
 
-//   var courseIDs = mapCourses(courses,'id');
-//   //log(courseIDs);
+  var courseIDs = mapCourses(courses,'id');
+  //log(courseIDs);
   
-//   getUpcomingAssignments(courseIDs[0], tasks => {
-//     log(formatAssignments(tasks))
-//   }).catch(error => {
-//     log("Could not get assignments. " + error, red);
-//   });
-//   //get annoucements
-//   getAnnouncements(courseIDs, announcements => {
-//     for( let i=0;i<announcements.length;i++){
-//       log((announcements[i].message));
-//     }
-//   }).catch(error => {
-//     log("Could not get announcements. " + error, red);
-//   });
+  // getUpcomingAssignments(courseIDs[0], tasks => {
+  //   log(formatAssignments(tasks))
+  // }).catch(error => {
+  //   log("Could not get assignments. " + error, red);
+  // });
 
-// }).catch(error => {
-//   log("Could not get courses. " + error, red);
-// });
+  var startDate = moment().subtract(4,'d').format('YYYY-MM-DD');
+  getAnnouncements(courseIDs, startDate, announcements => {
+    for(let i = 0; i < announcements.length;i++){
+      log(`${announcements[i].title} | ${announcements[i].author}`,cyan);
+      log(announcements[i].posted_at,cyan);
+      log(announcements[i].message + '\n');
+    }
+  }).catch(error => {
+    log("Could not get announcements. " + error, red);
+  });
+
+}).catch(error => {
+  log("Could not get courses. " + error, red);
+});
 
 /*getTACourses(courses => {
   //var courseIDs = formatCourses(courses,'id');
   var courseIDs = mapCourses(courses,'id');
   var speechText = 'You are currently teaching: ' + coursesToString(courses);
-  log(speechText);
+  log(speechText);`
   
   getContentExports(courseIDs[0], res => {
     log(res);
@@ -511,12 +495,12 @@ function formatStudents(students,by = 'full'){
 // });
 
 // ************************* Tested getProfessor function ************************
-getCourses(courses => {
-  //receive grades for ALL submitted assignments in ALL registered courses.
-  var courseIDs = mapCourses(courses,'id');
-     getProfessor(courseIDs[3], res => {
-       var courseName = mapCourses(courses,'name')
-       log(`Your professor for ${courseName[3]} is ` + res + '.', cyan)
-       //log(res);
-     });
- });
+// getCourses(courses => {
+//   //receive grades for ALL submitted assignments in ALL registered courses.
+//   var courseIDs = mapCourses(courses,'id');
+//      getProfessor(courseIDs[3], res => {
+//        var courseName = mapCourses(courses,'name')
+//        log(`Your professor for ${courseName[3]} is ` + res + '.', cyan)
+//        //log(res);
+//      });
+//  });
