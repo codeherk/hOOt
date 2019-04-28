@@ -405,6 +405,13 @@ function formatStudents(students, by = 'full'){
   return string;
 }
 
+/**
+ * Makes an HTTP GET request to Canvas LMS API.
+ * Receives response from API containing name of professor for a course with the given Course ID.
+ * Calls callback function, passing in response as param. 
+ * @param {String} courseID 
+ * @param {function} callback 
+*/
 const getProfessor = function (courseID, callback) {
   var result = url + 'courses/' + courseID + '/users' + '?enrollment_type[]=teacher';
   return get(result).then(data => {
@@ -1032,6 +1039,11 @@ const GetTotalStudentsIntentHandler = {
   },
 };
 
+/**
+ * Receive initial user input.
+ * Get list of user's classes based on access token in use.
+ * Save courseList as object in session attribute.
+ */
 const ProfessorNameIntentHandler = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request;
@@ -1062,6 +1074,15 @@ const ProfessorNameIntentHandler = {
   },
 };
 
+/**
+ * Handler for skills ProfessorName Intent.
+ * Invokes canHandle() to ensure request is an IntentRequest,
+ * matching the declared ProfessorName Intent,
+ * and that the status of the dialogState is 'IN_PROGRESS'.
+ * Invokes handle() to fetch the user's professor.
+ * Passes the course object into the getProfessorName function
+ * which handles the rest.
+ */
 const GetProfessorNameIntentHandler = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request;
