@@ -29,6 +29,7 @@
           "name": "CourseScoresIntent",
           "samples":[
             "course scores",
+            "what are my grades",
             "what are my current course scores",
             "list my current course scores",
             "list my current scores",
@@ -63,6 +64,7 @@
             "what assignments do I have",
             "what assignments do I have coming up",
             "what homework do I have",
+            "do i have any assignments coming up",
             "what do I need to do",
             "What assignments do I have for {course}",
             "What are my assignments for {course}",
@@ -171,6 +173,7 @@
           ],
           "samples": [
             "professor",
+            "teacher",
             "who is my teacher",
             "who is my professor",
             "who teaches my class",
