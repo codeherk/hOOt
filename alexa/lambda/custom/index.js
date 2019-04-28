@@ -16,9 +16,8 @@
 
 const Alexa = require('ask-sdk-core');
 const axios = require('axios');
+const moment = require('moment');
 const { Student, Course, Assignment, Announcement} = require('./canvas');
-//Helper Function for calling the Cognito /oauth2/userInfo to get user info using the accesstoken
-const https = require('https');
 const ld = require('./levenshtein');
 //const { access_token } = require('./config'); // create config.js in your code
 
@@ -113,59 +112,55 @@ const mapCourses = function (courses, by) {
 }
 
 /**
- * Get list of announcements  from 'courses' param.
- * Format course list into easily vocalized String.
- * @param {Course []} courses 
- * @returns {String} list of formatted, vocalizable course names.
+ * Loops through array of course IDs, adding courses to the request URL.
+ * Makes an HTTP GET Request to Canvas LMS API.
+ * Receives a response from API with all anouncements from courses specified in the CourseIDS param.
+ * Creates an array of Announcement objects based on API's response.
+ * Calls callback function, passiing in Announcement array as param.
+ * @param {String []} courseIDS 
+ * @param {Date} startDate 
+ * @param {function} callback 
  */
-
-const getAnnouncements = function (courses,callback) {
-  var temp= announcementURL;
-  var courseIDS=mapCourses(courses,'id');
-  for(var i=0;i<courseIDS.length;i++){
-    if (i==(courseIDS.length-1)){
-      temp = temp + 'context_codes[]=course_' + courseIDS[i];
-    }else{
-      temp = temp + 'context_codes[]=course_' + courseIDS[i]+'&';
-    }
+const getAnnouncements = function (courseIDs, startDate, callback) {
+  // if start date is null, set default days to 7
+  startDate = startDate ? startDate : moment().subtract(7,'d').format('YYYY-MM-DD'); 
+  var result = url + announcementURL + `context_codes[]=course_${courseIDs[0]}`;
+  for (let i = 1; i < courseIDs.length; i++) {
+    result += `&context_codes[]=course_${courseIDs[i]}`;
   }
-  return axios.get(url + temp, headerOptions)
+  result += `&start_date=${startDate}`;
+  //log(`startDate: ${startDate}`);
+  //log(`request: ${result}`);
+  return axios.get(result, headerOptions)
   .then(response => {
-    //log(response) //debug
     var announcements = [];
-    for(let i = 0; i < response.data.length; i++){
+    for (let i = 0; i < response.data.length; i++){
       announcements.push(new Announcement(response.data[i]));
-    }
-
-    for(let i = 0; i < announcements.length; i++){
-      var msg=announcements[i].message;
-      var new_msg="";
-      var b=1
-      for(let j=0; j<msg.length;j++){
-        if(msg[j]=='<'){
-          b=1;
-          continue;
-        }
-        if(msg[j]=='>'){
-          b=0;
-          continue;
-        }
-        if(b==0){
-          new_msg=new_msg+msg[j];
-        }
-
-      }
-      new_msg=new_msg.split("&amp;").join("and")
-      new_msg=new_msg.split("*").join("")
-      announcements[i].message=new_msg;
-      var cc=announcements[i].context_code;
-      announcements[i].course=courses[courseIDS.indexOf(parseInt(cc.substring(7,)))];
-      
     }
     callback(announcements);
   });
 }
 
+/**
+ * Groups Announcements by the course. 
+ * Returns the announcement array sorted.
+ * @param {Announcement []} announcements 
+ */
+const groupAnnouncements = function(announcements){
+  var notice = announcements.length ? [] : announcements;
+  //console.log(notice);
+  var temp, code;
+  while(announcements.length != 0){
+    // get first announcement context code
+    code = announcements[0].context_code;
+    temp = announcements.filter((notice) => notice.context_code.includes(code));
+    announcements = announcements.filter((notice) => !temp.includes(notice));
+    notice.push(temp);
+  }
+  //console.log(notice);
+  //var notice = notice.reduce((acc, val) => acc.concat(val), []);// [1, 2, 3, 4]
+  return notice;
+}
 
 /**
  * Get list of course names from 'courses' param.
@@ -197,16 +192,16 @@ const coursesToString = function (courses) {
  * @returns {String} list of formatted, vocalizable announcements.
  */
 
-const announcementsToString = function (announcements) {
+const announcementsToString = function (group) {
   var list = ''; // set list as empty string
-  var i;
-  // loop thru courses, and format it to string that will be spoken
-  
-  for (i = 0; i < announcements.length-1; i++) {
-    if (announcements[i].message.length>2){
-    list += 'Announcement for your '+announcements[i].course.name+' class: '+announcements[i].message;
-  }
-}
+  //log(announcements); // debug
+  group.forEach(c => {
+    list += `For ${c[0].course_name}: `
+    for(let i = 0; i < c.length;i++){
+      list += `Title: ${c[i].title}. Author: ${c[i].author}. Date posted: ${moment(c[i].posted_at).format('LL')}. `
+      list += `<p>Message: ${c[i].message}.</p> `
+    }
+  });
   return list;
 }
 
@@ -482,6 +477,13 @@ function speakError(handlerInput, speechText , error){
 /******************************* END OF FUNCTION DECLARATIONS *******************************/
 /********************************************************************************************/
 
+const getTotalAnnouncements = function(courseIDs, callback){
+  var startDate = moment().utcOffset("-04:00").subtract(5,'d').format('YYYY-MM-DD');
+  return getAnnouncements(courseIDs, startDate, notice => {
+     callback(notice.length);
+  })
+}
+
 /**
  * Handler for skill's Launch Request Intent.
  * Invokes canHandle() to ensure request is a LaunchRequest.
@@ -501,7 +503,8 @@ const LaunchRequestHandler = {
     } else {
 
       return new Promise(resolve => {
-        const speechText = 'Welcome to hOOt for Canvas, You can say help for more information. How may I help you? ';
+        //console.log(`user id is: ${handlerInput.requestEnvelope.context.System.user.userId}`);
+        let speechText = 'Welcome to hOOt for Canvas, You can say help for more information. How may I help you? ';
         // user is signed in, get access token from amazon
         alexa_access_token = handlerInput.requestEnvelope.context.System.user.accessToken;
         
@@ -522,11 +525,28 @@ const LaunchRequestHandler = {
             getCourses(courses => {
               sessionAttributes.courses = courses
               handlerInput.attributesManager.setSessionAttributes(sessionAttributes); // save session attributes
-              resolve(handlerInput.responseBuilder
-                .speak(speechText)
-                .reprompt(speechText)
-                .withSimpleCard('hOOt for Canvas', speechText)
-                .getResponse());
+              
+              
+              var courseIDs = mapCourses(courses,'id');
+              var startDate = moment().utcOffset("-04:00").subtract(5,'d').format('YYYY-MM-DD');
+              // get new announcements
+              getAnnouncements(courseIDs, startDate, announcements => {
+                var total = announcements.length;
+                var notice = null;
+                if(total == 1){
+                  notice = 'you have an announcement. Say "What are my announcements" to view them.';
+                }else if (total > 1){
+                  notice = `you have ${total} announcements. Say "What are my announcements" to view them.`;
+                }
+                speechText += (notice != null) ? `<emphasis level="moderate">By the way</emphasis>, ${notice}` :'';
+                console.log(speechText)
+                resolve(handlerInput.responseBuilder
+                  .speak(speechText)
+                  .reprompt(speechText)
+                  .withSimpleCard('hOOt for Canvas', speechText)
+                  .getResponse());
+              })
+
             }).catch(error => {
               resolve(speakError(handlerInput,"I had trouble getting your courses. Please try again later.",error));
             });
@@ -559,7 +579,6 @@ const CoursesIntentHandler = {
     // retrieve courses from session attributes
     const attributes = handlerInput.attributesManager.getSessionAttributes();
     const courses = attributes.courses
-
     return new Promise(resolve => {
       var question = ' Anything else I can help you with?';
       var speechText = 'You are currently enrolled in: ' + coursesToString(courses);
@@ -699,21 +718,33 @@ const AnnouncementIntentHandler = {
   },
   handle(handlerInput) {
     return new Promise(resolve => {
-      getCourses(courses => {
-        getAnnouncements(courses, announcements => {
-          var question = ' Anything else I can help you with?';
-          var announcements=announcementsToString(announcements);
-          var speechText = 'Here are your announcements: ' + (announcements);
-          resolve(handlerInput.responseBuilder
-            .speak(speechText + question)
-            .withStandardCard("Here are your announcements", speechText, smallImgUrl, largeImgUrl)
-            .withShouldEndSession(false)
-            .getResponse()          
-          )
-        }
+      // retrieve courses from session attributes
+      const attributes = handlerInput.attributesManager.getSessionAttributes();
+      const courses = attributes.courses
+      var courseIDs = mapCourses(courses,'id');
+      var startDate = moment().utcOffset("-04:00").subtract(5,'d').format('YYYY-MM-DD');
+      console.log(`startDate: ${startDate}`);
+      getAnnouncements(courseIDs, startDate, announcements => {
+        // assign course names to each announcement
+        announcements.map((notice) => {
+          notice.course_name = courses[courseIDs.indexOf(parseInt(notice.context_code.substring(7,)))].name;
+        });
+
+        console.log(`announcements: ${announcements}`);
+        // group announcement by course
+        var group = groupAnnouncements(announcements); // 2D array
+        console.log(`group: ${group}`);
+        var question = ' Anything else I can help you with?';
+        var list = announcementsToString(group);
+        console.log(`list: ${list}`);
+        var speechText = (list != '') ? ('Here are your announcements: ' + list) : 'You have no announcements.';
+        resolve(handlerInput.responseBuilder
+          .speak(speechText + question)
+          .withStandardCard("Announcements", speechText, smallImgUrl, largeImgUrl)
+          .withShouldEndSession(false)
+          .getResponse()          
         )
-      })
-      .catch(error => {
+      }).catch(error => {
         resolve(speakError(handlerInput,'I am having a little trouble getting your current announcements. Try again later.', error));
       });
     });
