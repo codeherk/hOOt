@@ -457,6 +457,26 @@ function getTotalStudents(handlerInput, requestedCourse, courses){
   });
 }
 
+function getProfessorName(handlerInput, requestedCourse, courses){
+  var bestMatch = ld.MatchMaker(requestedCourse, courses); // return course id
+  console.log(`Best match for ${requestedCourse}: ${bestMatch.object.id} ,${bestMatch.object.name}`)
+  var courseID = bestMatch.object.id;
+  
+  return new Promise(resolve => {
+    getProfessor(courseID, professor => {
+      //var list = formatStudents(students);
+      var output = `Your professor for ${bestMatch.object.name} is ${professor}. `;
+      resolve(handlerInput.responseBuilder
+        .speak(output)
+        .withSimpleCard(bestMatch.object.name, "professor")
+        .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
+        .getResponse())
+    }).catch(error => {
+       resolve(speakError(handlerInput,`I had trouble getting the total number of students. Try again later.`, error));
+    });
+  });
+}
+
 // https is a default part of Node.JS.  Read the developer doc:  https://nodejs.org/api/https.html
 function buildHttpGetOptions(accessToken) {
   return {
@@ -1035,7 +1055,7 @@ const ProfessorNameIntentHandler = {
         );
       }else{
         resolve(
-          getProfessor(handlerInput,requestedCourse,courses)
+          getProfessorName(handlerInput,requestedCourse,courses)
         );
       }
     }); 
@@ -1164,6 +1184,7 @@ exports.handler = skillBuilder
     TotalStudentsIntentHandler,
     GetTotalStudentsIntentHandler,
     ProfessorNameIntentHandler,
+    GetProfessorNameIntentHandler,
     HelpIntentHandler,
     CancelAndStopIntentHandler,
     SessionEndedRequestHandler
