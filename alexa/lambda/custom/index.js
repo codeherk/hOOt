@@ -1012,6 +1012,36 @@ const GetTotalStudentsIntentHandler = {
   },
 };
 
+const ProfessorNameIntentHandler = {
+  canHandle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request;
+    return request.type === 'IntentRequest' &&
+      request.intent.name === 'ProfessorNameIntent' &&
+      request.dialogState === 'STARTED';
+  },
+  handle(handlerInput) {
+    const currentIntent = handlerInput.requestEnvelope.request.intent;
+    var requestedCourse = currentIntent.slots.course.value;
+    
+    const attributes = handlerInput.attributesManager.getSessionAttributes();
+    const courses = attributes.courses;
+    console.log(`Requested Course: ${requestedCourse}`);
+
+    return new Promise(resolve => {
+      if(requestedCourse === undefined){
+        resolve(handlerInput.responseBuilder
+          .addDelegateDirective(currentIntent)
+          .getResponse()
+        );
+      }else{
+        resolve(
+          getProfessor(handlerInput,requestedCourse,courses)
+        );
+      }
+    }); 
+  },
+};
+
 /**
  * Handler for skill's Help Intent.
  * Invokes canHandle() to ensure request is an IntentRequest
@@ -1133,6 +1163,7 @@ exports.handler = skillBuilder
     GetStudentsIntentHandler,
     TotalStudentsIntentHandler,
     GetTotalStudentsIntentHandler,
+    ProfessorNameIntentHandler,
     HelpIntentHandler,
     CancelAndStopIntentHandler,
     SessionEndedRequestHandler
