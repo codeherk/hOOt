@@ -1062,6 +1062,31 @@ const ProfessorNameIntentHandler = {
   },
 };
 
+const GetProfessorNameIntentHandler = {
+  canHandle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request;
+    return request.type === 'IntentRequest' &&
+      request.intent.name === 'ProfessorNameIntent' &&
+      request.dialogState === 'IN_PROGRESS';
+  },
+  handle(handlerInput) {
+    const currentIntent = handlerInput.requestEnvelope.request.intent;
+    var requestedCourse = currentIntent.slots.course.value;
+
+    const attributes = handlerInput.attributesManager.getSessionAttributes();
+    const courses = attributes.courses;
+
+    console.log(`courses in attributes: ${attributes.courses}`);
+    console.log(`Requested: ${requestedCourse}`);
+
+    return new Promise(resolve => {
+      resolve(
+        getProfessorName(handlerInput,requestedCourse,courses)
+      );
+    }); 
+  },
+};
+
 /**
  * Handler for skill's Help Intent.
  * Invokes canHandle() to ensure request is an IntentRequest
