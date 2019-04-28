@@ -405,6 +405,15 @@ function formatStudents(students, by = 'full'){
   return string;
 }
 
+const getProfessor = function (courseID, callback) {
+  var result = url + 'courses/' + courseID + '/users' + '?enrollment_type[]=teacher';
+  return get(result).then(data => {
+    var professor = data[0].name;
+    //console.log(teacher);
+    callback(professor);
+  });
+}
+
 function listStudents(handlerInput, requestedCourse, courses){
   //console.log(`Inside list students. courses: ${courses}`);
   //compare requestedCourse with course array
@@ -435,9 +444,8 @@ function getTotalStudents(handlerInput, requestedCourse, courses){
   
   return new Promise(resolve => {
     getUsers(courseID, students => {
-      var list = formatStudents(students);
+      //var list = formatStudents(students);
       var output = `There are a total of ${students.length} students in your ${bestMatch.object.name} class.`;
-      //console.log(`list of students: ${list}`);
       resolve(handlerInput.responseBuilder
         .speak(output)
         .withSimpleCard(bestMatch.object.name, "total")
