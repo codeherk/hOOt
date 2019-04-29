@@ -55,8 +55,10 @@ function Assignment(obj) {
 
 function Announcement(obj) {
     this.id = obj.id;
+    this.posted_at = obj.posted_at ? moment(obj.posted_at).utcOffset("-04:00").format('LLL') : null;
+    this.author = obj.user_name;
     this.title = obj.title;
-    this.message = obj.message;
+    this.message = obj.message ? obj.message.replace(/(<script(\s|\S)*?<\/script>)|(<style(\s|\S)*?<\/style>)|(<!--(\s|\S)*?-->)|(<\/?(\s|\S)*?>)/g, "").trim() : null;
     this.context_code = obj.context_code;
 }
 
