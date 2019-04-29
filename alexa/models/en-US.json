@@ -29,6 +29,7 @@
           "name": "CourseScoresIntent",
           "samples":[
             "course scores",
+            "what are my grades",
             "what are my current course scores",
             "list my current course scores",
             "list my current scores",
@@ -39,7 +40,6 @@
         {
           "name": "TACoursesIntent",
           "samples": [
-            "courses",
             "what classes am I teaching",
             "what am I teaching currently",
             "what classes do I teach",
@@ -63,6 +63,7 @@
             "what assignments do I have",
             "what assignments do I have coming up",
             "what homework do I have",
+            "do i have any assignments coming up",
             "what do I need to do",
             "What assignments do I have for {course}",
             "What are my assignments for {course}",
@@ -126,7 +127,9 @@
             "what are my assignment scores",
             "what are my assignment grades",
             "what are my submission scores in {course}",
+            "what are my submission scores for {course}",
             "what are my assignment scores in {course}",
+            "what are my assignment scores for {course}",
             "what are my assignment grades in {course}"
           ]
         },
@@ -146,10 +149,9 @@
             "total students",
             "how many students are in my class",
             "how many people are in my class",
-            "what is the number of students in my class",
             "how many students are in {course}",
             "how many people are in {course}",
-            "what is the number of students in {course}"
+            "how many students are in my {course}"
           ]
         },
         {
@@ -166,6 +168,7 @@
           ],
           "samples": [
             "professor",
+            "teacher",
             "who is my teacher",
             "who is my professor",
             "who teaches my class",
@@ -241,6 +244,22 @@
               }
             }
           ]
+        },
+        {
+          "name": "ProfessorNameIntent",
+          "confirmationRequired": false,
+          "prompts": {},
+          "slots": [
+            {
+              "name": "course",
+              "type": "AMAZON.SearchQuery",
+              "confirmationRequired": false,
+              "elicitationRequired": true,
+              "prompts": {
+                "elicitation": "Elicit.Intent-ProfessorNameIntent.IntentSlot-course"
+              }
+            }
+          ]
         }
       ]
     }, 
@@ -274,6 +293,15 @@
       },
       {
         "id": "Elicit.Intent-TotalStudentsIntent.IntentSlot-course",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "Tell me what course"
+          }
+        ]
+      },
+      {
+        "id": "Elicit.Intent-ProfessorNameIntent.IntentSlot-course",
         "variations": [
           {
             "type": "PlainText",

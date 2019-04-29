@@ -405,6 +405,22 @@ function formatStudents(students, by = 'full'){
   return string;
 }
 
+/**
+ * Makes an HTTP GET request to Canvas LMS API.
+ * Receives response from API containing name of professor for a course with the given Course ID.
+ * Calls callback function, passing in response as param. 
+ * @param {String} courseID 
+ * @param {function} callback 
+*/
+const getProfessor = function (courseID, callback) {
+  var result = url + 'courses/' + courseID + '/users' + '?enrollment_type[]=teacher';
+  return get(result).then(data => {
+    var professor = data[0].name;
+    //console.log(teacher);
+    callback(professor);
+  });
+}
+
 function listStudents(handlerInput, requestedCourse, courses){
   //console.log(`Inside list students. courses: ${courses}`);
   //compare requestedCourse with course array
@@ -419,7 +435,7 @@ function listStudents(handlerInput, requestedCourse, courses){
       console.log(`list of students: ${list}`);
       resolve(handlerInput.responseBuilder
         .speak(output)
-        .withSimpleCard(bestMatch.object.name, "list")
+        .withSimpleCard(bestMatch.object.name, list)
         .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
         .getResponse())
     }).catch(error => {
@@ -435,12 +451,31 @@ function getTotalStudents(handlerInput, requestedCourse, courses){
   
   return new Promise(resolve => {
     getUsers(courseID, students => {
-      var list = formatStudents(students);
+      //var list = formatStudents(students);
       var output = `There are a total of ${students.length} students in your ${bestMatch.object.name} class.`;
-      //console.log(`list of students: ${list}`);
       resolve(handlerInput.responseBuilder
         .speak(output)
         .withSimpleCard(bestMatch.object.name, "total")
+        .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
+        .getResponse())
+    }).catch(error => {
+       resolve(speakError(handlerInput,`I had trouble getting the total number of students. Try again later.`, error));
+    });
+  });
+}
+
+function getProfessorName(handlerInput, requestedCourse, courses){
+  var bestMatch = ld.MatchMaker(requestedCourse, courses); // return course id
+  console.log(`Best match for ${requestedCourse}: ${bestMatch.object.id} ,${bestMatch.object.name}`)
+  var courseID = bestMatch.object.id;
+  
+  return new Promise(resolve => {
+    getProfessor(courseID, professor => {
+      //var list = formatStudents(students);
+      var output = `Your professor for ${bestMatch.object.name} is ${professor}. `;
+      resolve(handlerInput.responseBuilder
+        .speak(output)
+        .withSimpleCard(bestMatch.object.name, "professor")
         .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
         .getResponse())
     }).catch(error => {
@@ -581,7 +616,14 @@ const TACoursesIntentHandler = {
     return new Promise(resolve => {
       getTACourses(courses => {
         var question = ' Anything else I can help you with?';
-        var speechText = 'You are currently teaching: ' + coursesToString(courses);
+        var taughtCourses =  coursesToString(courses);
+        console.log(taughtCourses);
+        var speechText = 'You are currently teaching: ';
+        if(taughtCourses == 'undefined.'){
+          speechText = 'You are not teaching any courses as of now.';
+        }else{
+          speechText += coursesToString(courses);
+        }
         resolve(handlerInput.responseBuilder
           .speak(speechText + question)
           .withStandardCard("Teaching Courses", speechText, smallImgUrl, largeImgUrl)
@@ -777,13 +819,39 @@ const SubmissionScoresIntentHandler = {
       handlerInput.requestEnvelope.request.dialogState === 'STARTED';
   },
   handle(handlerInput) {
-    const intent = handlerInput.requestEnvelope.request.intent;
+    const currentIntent = handlerInput.requestEnvelope.request.intent;
+    var requestedCourse = currentIntent.slots.course.value;
 
+    const attributes = handlerInput.attributesManager.getSessionAttributes();
+    const courses = attributes.courses
+
+    
     return new Promise(resolve => {
-      resolve(handlerInput.responseBuilder
-        .addDelegateDirective(intent)
-        .getResponse()
-      )
+      if(requestedCourse === undefined){
+        resolve(handlerInput.responseBuilder
+          .addDelegateDirective(currentIntent)
+          .getResponse()
+          );
+      }else{
+        // find the closest match to the user's utterance in classes
+        var bestMatch = ld.FinalWord(requestedCourse, courses);
+        //get ID of course returned as best match
+        var courseID = bestMatch.object.id;
+        
+        //var classes = mapCourses(classes, 'name');
+        getAssignments(courseID, true, '', tasks => {
+          var response = submissionScoresToString(tasks);
+          var output = `In ${bestMatch.object.name}, ${response}`;
+    
+          resolve(handlerInput.responseBuilder
+            .speak(output)
+            .withSimpleCard(bestMatch.object.name, output)
+            .withShouldEndSession(false)
+            .getResponse())
+        }).catch(error => {
+          resolve(speakError(handlerInput, 'I had trouble getting your submission scores. Try again later', error))
+        });
+      }
     });
   },
 };
@@ -972,6 +1040,75 @@ const GetTotalStudentsIntentHandler = {
 };
 
 /**
+ * Receive initial user input.
+ * Get list of user's classes based on access token in use.
+ * Save courseList as object in session attribute.
+ */
+const ProfessorNameIntentHandler = {
+  canHandle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request;
+    return request.type === 'IntentRequest' &&
+      request.intent.name === 'ProfessorNameIntent' &&
+      request.dialogState === 'STARTED';
+  },
+  handle(handlerInput) {
+    const currentIntent = handlerInput.requestEnvelope.request.intent;
+    var requestedCourse = currentIntent.slots.course.value;
+    
+    const attributes = handlerInput.attributesManager.getSessionAttributes();
+    const courses = attributes.courses;
+    console.log(`Requested Course: ${requestedCourse}`);
+
+    return new Promise(resolve => {
+      if(requestedCourse === undefined){
+        resolve(handlerInput.responseBuilder
+          .addDelegateDirective(currentIntent)
+          .getResponse()
+        );
+      }else{
+        resolve(
+          getProfessorName(handlerInput,requestedCourse,courses)
+        );
+      }
+    }); 
+  },
+};
+
+/**
+ * Handler for skills ProfessorName Intent.
+ * Invokes canHandle() to ensure request is an IntentRequest,
+ * matching the declared ProfessorName Intent,
+ * and that the status of the dialogState is 'IN_PROGRESS'.
+ * Invokes handle() to fetch the user's professor.
+ * Passes the course object into the getProfessorName function
+ * which handles the rest.
+ */
+const GetProfessorNameIntentHandler = {
+  canHandle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request;
+    return request.type === 'IntentRequest' &&
+      request.intent.name === 'ProfessorNameIntent' &&
+      request.dialogState === 'IN_PROGRESS';
+  },
+  handle(handlerInput) {
+    const currentIntent = handlerInput.requestEnvelope.request.intent;
+    var requestedCourse = currentIntent.slots.course.value;
+
+    const attributes = handlerInput.attributesManager.getSessionAttributes();
+    const courses = attributes.courses;
+
+    console.log(`courses in attributes: ${attributes.courses}`);
+    console.log(`Requested: ${requestedCourse}`);
+
+    return new Promise(resolve => {
+      resolve(
+        getProfessorName(handlerInput,requestedCourse,courses)
+      );
+    }); 
+  },
+};
+
+/**
  * Handler for skill's Help Intent.
  * Invokes canHandle() to ensure request is an IntentRequest
  * matching the declared HelpIntent.
@@ -1087,6 +1224,8 @@ exports.handler = skillBuilder
     GetStudentsIntentHandler,
     TotalStudentsIntentHandler,
     GetTotalStudentsIntentHandler,
+    ProfessorNameIntentHandler,
+    GetProfessorNameIntentHandler,
     HelpIntentHandler,
     CancelAndStopIntentHandler,
     SessionEndedRequestHandler
