@@ -182,7 +182,7 @@ var _db = (arg, debug) => {
     }//end if
 }//end _db
 //condition to print debug
-var debug_print = true;
+var debug_print = false;
 //InsidePrepareCourse
 var ISCarray = false;
 var matchToCourseBoo = false;
