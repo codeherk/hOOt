@@ -148,8 +148,12 @@
           "samples": [
             "total students",
             "how many students are in my class",
+            "how many students taking my class",
+            "how many students are taking my class",
             "how many people are in my class",
             "how many students are in {course}",
+            "how many students taking {course}",
+            "how many students are taking {course}",
             "how many people are in {course}",
             "how many students are in my {course}"
           ]
@@ -170,9 +174,12 @@
             "professor",
             "teacher",
             "who is my teacher",
+            "who is my teacher for my class",
             "who is my professor",
             "who teaches my class",
+            "who is teaching my class",
             "who is my professor for {course}",
+            "who is teaching {course}",
             "who is my teacher for {course}"
           ]
         }
