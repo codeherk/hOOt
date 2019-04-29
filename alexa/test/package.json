@@ -10,5 +10,6 @@
   "license": "ISC",
   "devDependencies": {
     "alexa-skill-test-framework": "^1.2.4"
-  }
+  },
+  "dependencies": {}
 }

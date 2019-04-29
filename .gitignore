@@ -87,7 +87,7 @@ typings/
 *config.js
 
 # Ignore alexa project config... It will most likely be different for each team member
-*.ask/
+*.ask/config
 
 # End of https://www.gitignore.io/api/node
 *.DS_Store

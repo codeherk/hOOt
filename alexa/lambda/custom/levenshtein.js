@@ -652,22 +652,22 @@ var toString = (list) => {
  * Object used to mimic course array given by hooT
  * ############Used for testing only###############
  */
-function hooTCourse(obj){
-    this.id = Math.floor(Math.random()*10000);
-    this.name = obj;
-}//end hooTCourse
+// function hooTCourse(obj){
+//     this.id = Math.floor(Math.random()*10000);
+//     this.name = obj;
+// }//end hooTCourse
 
-var hootArrayPopulate = (arr) => {
+// var hootArrayPopulate = (arr) => {
 
-    var hooTArray = [];
+//     var hooTArray = [];
 
-    for (var i = 0; i<arr.length; i++) {
-        hooTArray.push(new hooTCourse(arr[i]));
-    }//end
+//     for (var i = 0; i<arr.length; i++) {
+//         hooTArray.push(new hooTCourse(arr[i]));
+//     }//end
 
-    return hooTArray;
+//     return hooTArray;
 
-}//end
+// }//end
 
 
 
@@ -675,16 +675,16 @@ var hootArrayPopulate = (arr) => {
 
 //########################test##########################################
 
-var testphrase = 'common good';
-var testArr = ['projects in computer science','Basic Concepts in Math','Probability Theory I',
-                'Physics 1068','IH: The Good Life','IH: The common good','Phys 1068 Lab',
-                'Intro to Modern Algebra','data structures','data structures and algorithms'];
+// var testphrase = 'common good';
+// var testArr = ['projects in computer science','Basic Concepts in Math','Probability Theory I',
+//                 'Physics 1068','IH: The Good Life','IH: The common good','Phys 1068 Lab',
+//                 'Intro to Modern Algebra','data structures','data structures and algorithms'];
 
-var testArray = hootArrayPopulate(testArr);
+// var testArray = hootArrayPopulate(testArr);
 
-//_db(testArray,false);
+// //_db(testArray,false);
 
-var temp = MatchMaker(testphrase, testArray);
+// var temp = MatchMaker(testphrase, testArray);
 
 //var test = new DataAggregate(testphrase, testArray);
 
@@ -697,7 +697,7 @@ var temp = MatchMaker(testphrase, testArray);
 //     .setResult();
 //_db(temp,true);
 //_db(test,false);
-_db(`best match to '${testphrase}' is '${temp.object.name}'`,true);
+//_db(`best match to '${testphrase}' is '${temp.object.name}'`,true);
 //_db(test.most_match,true);
 
 //var a = [23,44,55,1,2,4,7,9,];
@@ -706,8 +706,8 @@ _db(`best match to '${testphrase}' is '${temp.object.name}'`,true);
 //var a = [11,1,1,1,1,1,1,1];
 //var b = [1,1,1,1,1,1];
 
-var words = ['Hello','My','Name','Is','A','Poop'];
-var indexs = [1,3,4];
+// var words = ['Hello','My','Name','Is','A','Poop'];
+// var indexs = [1,3,4];
 
 
 // var p = constructPhrase(words,indexs);

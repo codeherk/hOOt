@@ -986,27 +986,22 @@ const HelpIntentHandler = {
   handle(handlerInput) {
 
     var examples = [
-      "what are my announcements. ",
-      "how many students are in my class. ", 
+      "what are my announcements. ", 
       "what assignments do I have. ", 
       "what are my current course scores. ",
       "what classes am I taking. ",
       "do i have any announcements. ",
       "what homework do I have. ",
       "what are my course scores. ",
-      "what courses am I enrolled in. ",
-      "how many people are in my class. "
+      "what courses am I enrolled in. "
     ];
 
     var chooseRandomSample = Math.floor(Math.random() * examples.length);
-    var chooseOtherRandomSample = Math.floor(Math.random() * examples.length);
 
-    const intentsText= "You can say things like. " + examples[chooseRandomSample] + "or, " 
-    + examples[chooseOtherRandomSample] + " Please say a command. ";
+    const intentsText= "You can say things like. " + examples[chooseRandomSample] + " Please say a command. ";
     const speechText = 'Hoot can answer questions about your canvas account! ' + intentsText;
 
     chooseRandomSample = Math.floor(Math.random() * examples.length);
-    chooseOtherRandomSample = Math.floor(Math.random() * examples.length);
 
     return handlerInput.responseBuilder
       .speak(speechText)

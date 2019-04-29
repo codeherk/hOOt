@@ -22,30 +22,30 @@ describe("hoot Skill", function () {
 		alexaTest.test([
 			{
 				request: alexaTest.getLaunchRequest(),
-				says: "Welcome to hOOt for Canvas, how may I help you?", repromptsNothing: false, shouldEndSession: false
+				says: "Welcome to hOOt for Canvas, You can say help for more information. How may I help you? ", repromptsNothing: false, shouldEndSession: false
 			}
 		]);
 	});
 
 	// tests the behavior of the skill's HelloWorldIntent
-	describe("HelloWorldIntent", function () {
-		alexaTest.test([
-			{
-				request: alexaTest.getIntentRequest("HelloWorldIntent"),
-				says: "Hello World!", repromptsNothing: true, shouldEndSession: true
-			}
-		]);
-	});
+	// describe("HelloWorldIntent", function () {
+	// 	alexaTest.test([
+	// 		{
+	// 			request: alexaTest.getIntentRequest("HelloWorldIntent"),
+	// 			says: "Hello World!", repromptsNothing: true, shouldEndSession: true
+	// 		}
+	// 	]);
+	// });
 
-	// tests the behavior of the skill's HelloWorldIntent with like operator
-	describe("HelloWorldIntent like", function () {
-		alexaTest.test([
-			{
-				request: alexaTest.getIntentRequest("HelloWorldIntent"),
-				saysLike: "World", repromptsNothing: true, shouldEndSession: true
-			}
-		]);
-	});
+	// // tests the behavior of the skill's HelloWorldIntent with like operator
+	// describe("HelloWorldIntent like", function () {
+	// 	alexaTest.test([
+	// 		{
+	// 			request: alexaTest.getIntentRequest("HelloWorldIntent"),
+	// 			saysLike: "World", repromptsNothing: true, shouldEndSession: true
+	// 		}
+	// 	]);
+	// });
 
 	describe("CoursesIntent like", function () {
 		alexaTest.test([
