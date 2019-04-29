@@ -14,6 +14,7 @@
  * @author Brendan Connelly
  */
 
+// IMPORT MODULES
 const Alexa = require('ask-sdk-core');
 const axios = require('axios');
 const moment = require('moment');
@@ -21,10 +22,7 @@ const { Student, Course, Assignment, Announcement} = require('./canvas');
 const ld = require('./levenshtein');
 //const { access_token } = require('./config'); // create config.js in your code
 
-//var access_token = '';
 var alexa_access_token = '';
-
-var classes = [];
 
 // base URL for HTTP requests to the Canvas LMS API
 var url = `https://templeu.instructure.com/api/v1/`;
@@ -444,22 +442,18 @@ function getTotalStudents(handlerInput, requestedCourse, courses){
   });
 }
 
-// https is a default part of Node.JS.  Read the developer doc:  https://nodejs.org/api/https.html
-function buildHttpGetOptions(accessToken) {
-  return {
-      //Replace the host with your cognito user pool domain 
-      method: 'GET',
-      baseURL: 'https://alexa-hoot.auth.us-east-1.amazoncognito.com',
-      url: '/oauth2/userInfo',
-      port: 443,
-      headers: {
-          'authorization': 'Bearer ' + accessToken
-      }
+function getUserInfo(accessToken, callback) {
+  const request = {
+    //Replace the host with your cognito user pool domain 
+    method: 'GET',
+    baseURL: 'https://alexa-hoot.auth.us-east-1.amazoncognito.com',
+    url: '/oauth2/userInfo',
+    port: 443,
+    headers: {
+        'authorization': 'Bearer ' + accessToken
+    }
   };
-}
-
-function httpGet(options, callback) {
-  return axios(options).then(res => {
+  return axios(request).then(res => {
     callback(res);
   });
 }
@@ -477,13 +471,6 @@ function speakError(handlerInput, speechText , error){
 /******************************* END OF FUNCTION DECLARATIONS *******************************/
 /********************************************************************************************/
 
-const getTotalAnnouncements = function(courseIDs, callback){
-  var startDate = moment().utcOffset("-04:00").subtract(5,'d').format('YYYY-MM-DD');
-  return getAnnouncements(courseIDs, startDate, notice => {
-     callback(notice.length);
-  })
-}
-
 /**
  * Handler for skill's Launch Request Intent.
  * Invokes canHandle() to ensure request is a LaunchRequest.
@@ -500,21 +487,19 @@ const LaunchRequestHandler = {
         .reprompt("to start using this skill, please use the companion app to authenticate")
         .withLinkAccountCard()
         .getResponse();
-    } else {
+    }else {
 
       return new Promise(resolve => {
         //console.log(`user id is: ${handlerInput.requestEnvelope.context.System.user.userId}`);
         let speechText = 'Welcome to hOOt for Canvas, You can say help for more information. How may I help you? ';
         // user is signed in, get access token from amazon
         alexa_access_token = handlerInput.requestEnvelope.context.System.user.accessToken;
+        //console.log(`aat: ${alexa_access_token}`); // access token granted from amazon cognito
         
         // try to get info about user. 
         try {
-          var tokenOptions = buildHttpGetOptions(alexa_access_token);
-          //console.log(`aat: ${alexa_access_token}`); // access token granted from amazon cognito
-
           // make a call to get user attributes
-          httpGet(tokenOptions, response => {
+          getUserInfo(alexa_access_token, response => {
             //console.log(response.data);
             //console.log(response.data.zoneinfo);
 
@@ -559,8 +544,8 @@ const LaunchRequestHandler = {
           resolve(speakError(handlerInput,"I had trouble getting access to canvas. Try again later.",error));
         }
       });
-      }
-    },
+    }
+  },
 };
 
 /**
