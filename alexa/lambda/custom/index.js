@@ -492,6 +492,7 @@ const LaunchRequestHandler = {
       return new Promise(resolve => {
         //console.log(`user id is: ${handlerInput.requestEnvelope.context.System.user.userId}`);
         let speechText = 'Welcome to hOOt for Canvas, You can say help for more information. How may I help you? ';
+        let displayText = 'Welcome, You can say "Help" for more information. How may I help you? ';
         // user is signed in, get access token from amazon
         alexa_access_token = handlerInput.requestEnvelope.context.System.user.accessToken;
         //console.log(`aat: ${alexa_access_token}`); // access token granted from amazon cognito
@@ -511,24 +512,32 @@ const LaunchRequestHandler = {
               sessionAttributes.courses = courses
               handlerInput.attributesManager.setSessionAttributes(sessionAttributes); // save session attributes
               
-              
               var courseIDs = mapCourses(courses,'id');
               var startDate = moment().utcOffset("-04:00").subtract(5,'d').format('YYYY-MM-DD');
               // get new announcements
               getAnnouncements(courseIDs, startDate, announcements => {
                 var total = announcements.length;
                 var notice = null;
+
+                // speech string formatting
+                // (if total is 1) you have AN announcement. (if total > 1) you have {total} announcement(s)
                 if(total == 1){
-                  notice = 'you have an announcement. Say "What are my announcements" to view them.';
+                  speechText += '<emphasis level="reduced">By the way</emphasis>, you have 1 announcement available. Say <break strength="medium"/> what are my announcements, to view them.';
+                  displayText = 'You have an 1 announcement. Say "What are my announcements?" to view them.';
                 }else if (total > 1){
-                  notice = `you have ${total} announcements. Say "What are my announcements" to view them.`;
+                  speechText += `<emphasis level="reduced">By the way</emphasis>, you have ${total} announcements available. Say <break strength="medium"/> what are my announcements, to view them.`;
+                  displayText = `You have ${total} announcements. Say "What are my announcements?" to view them.`;
                 }
-                speechText += (notice != null) ? `<emphasis level="moderate">By the way</emphasis>, ${notice}` :'';
-                console.log(speechText)
+                // // if there are any announcements, inform user. 
+                // if(notice != null){
+                //   // only include SSML tags in speechText so Alexa display does show the tags
+                //   speechText += `<emphasis level="moderate">By the way</emphasis>, ${notice}`
+                // }
+
                 resolve(handlerInput.responseBuilder
                   .speak(speechText)
                   .reprompt(speechText)
-                  .withSimpleCard('hOOt for Canvas', speechText)
+                  .withSimpleCard('hOOt for Canvas', displayText)
                   .getResponse());
               })
 
