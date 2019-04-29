@@ -354,13 +354,13 @@ const formatAssignments = function (tasks){
  * @param {function} callback 
 */
 const getUsers = function (courseID, callback) {
-  var result = url + 'courses/' + courseID + '/users' + '?enrollment_type[]=student';
+  var result = url + 'courses/' + courseID + '/users' + '?enrollment_type[]=student&per_page=15';
   return get(result).then(data => {
     var students = [];
     // create student objects
-    data.forEach(obj => {
-      students.push(new Student(obj));
-    });
+    for (let i = 0; i < data.length; i++) {
+      students.push(new Student(data[i]));
+    }
     callback(students);
   });
 }
@@ -377,9 +377,8 @@ function get(url, data = []) {
         nextLink = nextLink[0].split(";")[0];
         nextLink = nextLink.substring(1, nextLink.length - 1);
         return get(nextLink, data)
-      }else{
-        return data
       }
+      return data
     });
 }
 
