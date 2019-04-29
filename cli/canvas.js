@@ -62,7 +62,7 @@ function Announcement(obj) {
     this.posted_at = obj.posted_at ? moment(obj.posted_at).format('LLL') : null;
     this.author = obj.user_name;
     this.title = obj.title;
-    this.message = obj.message ? obj.message.replace(/(<script(\s|\S)*?<\/script>)|(<style(\s|\S)*?<\/style>)|(<!--(\s|\S)*?-->)|(<\/?(\s|\S)*?>)/g, "").trim() : null;
+    this.message = obj.message ? h2p(obj.message).replace(/\s+/g,' ') : null;
     this.context_code = obj.context_code;
 
 }

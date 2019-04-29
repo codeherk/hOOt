@@ -456,7 +456,6 @@ function getTotalStudents(handlerInput, requestedCourse, courses){
   });
 }
 
-<<<<<<< HEAD
 function getProfessorName(handlerInput, requestedCourse, courses){
   var bestMatch = ld.MatchMaker(requestedCourse, courses); // return course id
   console.log(`Best match for ${requestedCourse}: ${bestMatch.object.id} ,${bestMatch.object.name}`)
@@ -477,18 +476,6 @@ function getProfessorName(handlerInput, requestedCourse, courses){
   });
 }
 
-// https is a default part of Node.JS.  Read the developer doc:  https://nodejs.org/api/https.html
-function buildHttpGetOptions(accessToken) {
-  return {
-      //Replace the host with your cognito user pool domain 
-      method: 'GET',
-      baseURL: 'https://alexa-hoot.auth.us-east-1.amazoncognito.com',
-      url: '/oauth2/userInfo',
-      port: 443,
-      headers: {
-          'authorization': 'Bearer ' + accessToken
-      }
-=======
 function getUserInfo(accessToken, callback) {
   const request = {
     //Replace the host with your cognito user pool domain 
@@ -499,7 +486,6 @@ function getUserInfo(accessToken, callback) {
     headers: {
         'authorization': 'Bearer ' + accessToken
     }
->>>>>>> codeherk
   };
   return axios(request).then(res => {
     callback(res);
