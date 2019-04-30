@@ -36,6 +36,8 @@ var TA_URL = '&enrollment_type=ta';
 var scoreURL = '&include[]=total_scores';
 var announcementURL = 'announcements?';
 
+const NO_COURSE_MATCH_FOUND = " is not in your list of courses.";
+
 /**
  * For the addition of header options including access token to HTTP request
  */
@@ -354,7 +356,7 @@ const formatAssignments = function (tasks){
  * @param {function} callback 
 */
 const getUsers = function (courseID, callback) {
-  var result = url + 'courses/' + courseID + '/users' + '?enrollment_type[]=student&per_page=15';
+  var result = url + 'courses/' + courseID + '/users' + '?enrollment_type[]=student&per_page=20';
   return get(result).then(data => {
     var students = [];
     // create student objects
@@ -417,62 +419,92 @@ function listStudents(handlerInput, requestedCourse, courses){
   //console.log(`Inside list students. courses: ${courses}`);
   //compare requestedCourse with course array
   var bestMatch = ld.MatchMaker(requestedCourse, courses); // return course id
-  console.log(`Best match for ${requestedCourse}: ${bestMatch.object.id} ,${bestMatch.object.name}`)
-  var courseID = bestMatch.object.id;
   
   return new Promise(resolve => {
-    getUsers(courseID, students => {
-      var list = formatStudents(students);
-      var output = `The students currently enrolled in ${bestMatch.object.name} are: ${list}`;
-      console.log(`list of students: ${list}`);
+    if (bestMatch.object == null){
+      // tell user 
+      var output = `${requestedCourse}, ${NO_COURSE_MATCH_FOUND}`;
       resolve(handlerInput.responseBuilder
         .speak(output)
-        .withSimpleCard(bestMatch.object.name, list)
+        .withSimpleCard("Error", output)
         .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
         .getResponse())
-    }).catch(error => {
-       resolve(speakError(handlerInput,`I had trouble getting the list of students. Try again later.`, error));
-    });
+      }else{
+        var courseID = bestMatch.object.id;
+        console.log(`bestMatch object ${bestMatch}`);
+      getUsers(courseID, students => {
+        var list = formatStudents(students);
+        var output = `The students currently enrolled in ${bestMatch.object.name} are: ${list}`;
+        console.log(`list of students: ${list}`);
+        resolve(handlerInput.responseBuilder
+          .speak(output)
+          .withSimpleCard(bestMatch.object.name, list)
+          .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
+          .getResponse())
+      }).catch(error => {
+         resolve(speakError(handlerInput,`I had trouble getting the list of students. Try again later.`, error));
+      });
+    }
   });
 }
 
 function getTotalStudents(handlerInput, requestedCourse, courses){
   var bestMatch = ld.MatchMaker(requestedCourse, courses); // return course id
-  console.log(`Best match for ${requestedCourse}: ${bestMatch.object.id} ,${bestMatch.object.name}`)
-  var courseID = bestMatch.object.id;
-  
   return new Promise(resolve => {
-    getUsers(courseID, students => {
-      //var list = formatStudents(students);
-      var output = `There are a total of ${students.length} students in your ${bestMatch.object.name} class.`;
+    if (bestMatch.object == null){
+      // tell user 
+      var output = `${requestedCourse}, ${NO_COURSE_MATCH_FOUND}`;
       resolve(handlerInput.responseBuilder
         .speak(output)
-        .withSimpleCard(bestMatch.object.name, "total")
+        .withSimpleCard("Error", output)
         .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
         .getResponse())
-    }).catch(error => {
-       resolve(speakError(handlerInput,`I had trouble getting the total number of students. Try again later.`, error));
-    });
+    }else{
+      var courseID = bestMatch.object.id;
+      console.log(`bestMatch object ${bestMatch}`);
+      getUsers(courseID, students => {
+        //var list = formatStudents(students);
+        var output = `There are a total of ${students.length} students in your ${bestMatch.object.name} class.`;
+        resolve(handlerInput.responseBuilder
+          .speak(output)
+          .withSimpleCard(bestMatch.object.name, output)
+          .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
+          .getResponse())
+      }).catch(error => {
+         resolve(speakError(handlerInput,`I had trouble getting the total number of students. Try again later.`, error));
+      });
+    }
   });
 }
 
 function getProfessorName(handlerInput, requestedCourse, courses){
   var bestMatch = ld.MatchMaker(requestedCourse, courses); // return course id
-  console.log(`Best match for ${requestedCourse}: ${bestMatch.object.id} ,${bestMatch.object.name}`)
-  var courseID = bestMatch.object.id;
+  console.log(bestMatch);
   
   return new Promise(resolve => {
-    getProfessor(courseID, professor => {
-      //var list = formatStudents(students);
-      var output = `Your professor for ${bestMatch.object.name} is ${professor}. `;
+    if (bestMatch.object == null){
+      // tell user 
+      var output = `${requestedCourse}, ${NO_COURSE_MATCH_FOUND}`;
       resolve(handlerInput.responseBuilder
         .speak(output)
-        .withSimpleCard(bestMatch.object.name, "professor")
+        .withSimpleCard("Error", output)
         .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
         .getResponse())
-    }).catch(error => {
-       resolve(speakError(handlerInput,`I had trouble getting the total number of students. Try again later.`, error));
-    });
+    }else{
+      console.log(`Best match for ${requestedCourse}: ${bestMatch.object.id} ,${bestMatch.object.name}`)
+      var courseID = bestMatch.object.id;
+      getProfessor(courseID, professor => {
+        //var list = formatStudents(students);
+        var output = `Your professor for ${bestMatch.object.name} is ${professor}. `;
+        resolve(handlerInput.responseBuilder
+          .speak(output)
+          .withSimpleCard(bestMatch.object.name, output)
+          .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
+          .getResponse())
+      }).catch(error => {
+         resolve(speakError(handlerInput,`I had trouble getting the total number of students. Try again later.`, error));
+      });
+    }
   });
 }
 
@@ -710,22 +742,32 @@ const AssignmentIntentHandler = {
         );
       }else {
         var bestMatch = ld.MatchMaker(requestedCourse, courses); // return course id
-        var courseID = bestMatch.object.id;
-
-        getUpcomingAssignments(courseID, tasks => {
-          var list = formatAssignments(tasks);
-          var output = (list === undefined || list.length == 0) ? 'there are no upcoming assignments' : list[0];
-          output = `For ${bestMatch.object.name}, ${output}`;
-
+        if (bestMatch.object == null){
+          // tell user 
+          var output = `${requestedCourse}, ${NO_COURSE_MATCH_FOUND}`;
           resolve(handlerInput.responseBuilder
-              .speak(output)
-              .withSimpleCard(bestMatch.object.name, output)
-              .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
-              .getResponse()
-          )
-        }).catch(error => {
-          resolve(speakError(handlerInput,`I had trouble getting your assignments. Try again later.`, error));
-        });
+            .speak(output)
+            .withSimpleCard("Error", output)
+            .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
+            .getResponse())
+        }else{
+          var courseID = bestMatch.object.id;
+  
+          getUpcomingAssignments(courseID, tasks => {
+            var list = formatAssignments(tasks);
+            var output = (list === undefined || list.length == 0) ? 'there are no upcoming assignments' : list[0];
+            output = `For ${bestMatch.object.name}, ${output}`;
+  
+            resolve(handlerInput.responseBuilder
+                .speak(output)
+                .withSimpleCard(bestMatch.object.name, output)
+                .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
+                .getResponse()
+            )
+          }).catch(error => {
+            resolve(speakError(handlerInput,`I had trouble getting your assignments. Try again later.`, error));
+          });
+        }
       }
     });
   },
@@ -810,23 +852,33 @@ const GetAssignmentIntentHandler = {
        * bestMatch.object.{.name, .id, .position, .match, .distance}
        * bestMatch.status = {100 = good, 401 = null array}
        */
-      var courseID = bestMatch.object.id;
-
-      //var courseIDs = mapCourses(classes,'id');
-      //classes = mapCourses(classes,'name');
-      getUpcomingAssignments(courseID, tasks => {
-        var list = formatAssignments(tasks);
-        var output = (list === undefined || list.length == 0) ? 'there are no upcoming assignments' : list[0];
-        output = `For ${bestMatch.object.name}, ${output}`;
+      if (bestMatch.object == null){
+        // tell user 
+        var output = `${requestedCourse}, ${NO_COURSE_MATCH_FOUND}`;
         resolve(handlerInput.responseBuilder
-            .speak(output)
-            .withSimpleCard(bestMatch.object.name, output)
-            .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
-            .getResponse()
-        )
-      }).catch(error => {
-        resolve(speakError(handlerInput,`I had trouble getting your assignments. Try again later.`, error));
-      });
+          .speak(output)
+          .withSimpleCard("Error", output)
+          .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
+          .getResponse())
+      }else{
+        var courseID = bestMatch.object.id;
+  
+        //var courseIDs = mapCourses(classes,'id');
+        //classes = mapCourses(classes,'name');
+        getUpcomingAssignments(courseID, tasks => {
+          var list = formatAssignments(tasks);
+          var output = (list === undefined || list.length == 0) ? 'there are no upcoming assignments' : list[0];
+          output = `For ${bestMatch.object.name}, ${output}`;
+          resolve(handlerInput.responseBuilder
+              .speak(output)
+              .withSimpleCard(bestMatch.object.name, output)
+              .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
+              .getResponse()
+          )
+        }).catch(error => {
+          resolve(speakError(handlerInput,`I had trouble getting your assignments. Try again later.`, error));
+        });
+      }
     });
   },
 };
@@ -859,22 +911,32 @@ const SubmissionScoresIntentHandler = {
       }else{
         // find the closest match to the user's utterance in classes
         var bestMatch = ld.FinalWord(requestedCourse, courses);
-        //get ID of course returned as best match
-        var courseID = bestMatch.object.id;
-        
-        //var classes = mapCourses(classes, 'name');
-        getAssignments(courseID, true, '', tasks => {
-          var response = submissionScoresToString(tasks);
-          var output = `In ${bestMatch.object.name}, ${response}`;
-    
+        if (bestMatch.object == null){
+          // tell user 
+          var output = `${requestedCourse}, ${NO_COURSE_MATCH_FOUND}`;
           resolve(handlerInput.responseBuilder
             .speak(output)
-            .withSimpleCard(bestMatch.object.name, output)
-            .withShouldEndSession(false)
+            .withSimpleCard("Error", output)
+            .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
             .getResponse())
-        }).catch(error => {
-          resolve(speakError(handlerInput, 'I had trouble getting your submission scores. Try again later', error))
-        });
+        }else{
+          //get ID of course returned as best match
+          var courseID = bestMatch.object.id;
+          
+          //var classes = mapCourses(classes, 'name');
+          getAssignments(courseID, true, '', tasks => {
+            var response = submissionScoresToString(tasks);
+            var output = `In ${bestMatch.object.name}, ${response}`;
+      
+            resolve(handlerInput.responseBuilder
+              .speak(output)
+              .withSimpleCard(bestMatch.object.name, output)
+              .withShouldEndSession(false)
+              .getResponse())
+          }).catch(error => {
+            resolve(speakError(handlerInput, 'I had trouble getting your submission scores. Try again later', error))
+          });
+        }
       }
     });
   },
@@ -905,22 +967,31 @@ const GetSubmissionScoresIntentHandler = {
     return new Promise(resolve => {
       // find the closest match to the user's utterance in classes
       var bestMatch = ld.MatchMaker(requestedCourse, courses);
-      //get ID of course returned as best match
-      var courseID = bestMatch.object.id;
-
-      //var classes = mapCourses(classes, 'name');
-      getAssignments(courseID, true, '', tasks => {
-        var response = submissionScoresToString(tasks);
-        var output = `In ${bestMatch.object.name}, ${response}`;
-
+      if (bestMatch.object == null){
+        // tell user 
+        var output = `${requestedCourse}, ${NO_COURSE_MATCH_FOUND}`;
         resolve(handlerInput.responseBuilder
           .speak(output)
-          .withSimpleCard(bestMatch.object.name, output)
-          .withShouldEndSession(false)
+          .withSimpleCard("Error", output)
+          .withShouldEndSession(false) // without this, we would have to ask alexa to open hoot everytime
           .getResponse())
-      }).catch(error => {
-        resolve(speakError(handlerInput, 'I had trouble getting your submission scores. Try again later', error))
-      });
+      }else{
+        //get ID of course returned as best match
+        var courseID = bestMatch.object.id;
+  
+        getAssignments(courseID, true, '', tasks => {
+          var response = submissionScoresToString(tasks);
+          var output = `In ${bestMatch.object.name}, ${response}`;
+  
+          resolve(handlerInput.responseBuilder
+            .speak(output)
+            .withSimpleCard(bestMatch.object.name, output)
+            .withShouldEndSession(false)
+            .getResponse())
+        }).catch(error => {
+          resolve(speakError(handlerInput, 'I had trouble getting your submission scores. Try again later', error))
+        });
+      }
     });
   },
 };
@@ -1172,7 +1243,7 @@ const HelpIntentHandler = {
     return handlerInput.responseBuilder
       .speak(speechText)
       .reprompt(speechText)
-      .withSimpleCard('Hello World', speechText)
+      .withSimpleCard('hOOt for Canvas', speechText)
       .getResponse();
   },
 };
