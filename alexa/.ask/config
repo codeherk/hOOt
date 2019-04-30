@@ -64,11 +64,11 @@
       "merge": {},
       "resources": {
         "manifest": {
-          "eTag": "88afa1d9823998cbb7bc39e9c01265e4"
+          "eTag": "39c7e9980a6fa81ca2f314a6bc62a829"
         },
         "interactionModel": {
           "en-US": {
-            "eTag": "6154a0509108bae7462a08fc107635af"
+            "eTag": "70591a998f988a13990600dc41eff264"
           }
         },
         "lambda": [
@@ -81,7 +81,7 @@
             "codeUri": "lambda/custom",
             "functionName": "getCourses",
             "handler": "index.handler",
-            "revisionId": "0ac2ccff-2efc-4965-89dd-ac85a583a30b",
+            "revisionId": "15d8c160-eaad-428b-ab45-e931bfc2f827",
             "runtime": "nodejs8.10"
           }
         ]
