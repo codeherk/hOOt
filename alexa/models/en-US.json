@@ -69,6 +69,7 @@
             "What are my assignments for {course}",
             "What homework do I have for {course}",
             "What are my homework for {course}",
+            "What is my homework for {course}",
             "Assignments for {course}",
             "Homework for {course}",
             "what do I need to do for my {course} class"
@@ -92,7 +93,6 @@
             "who is in my class",
             "what students are taking {course}",
             "what students are taking {course} class",
-            "who is in {course}",
             "who am I taking {course} with"
           ]
         },
@@ -176,6 +176,8 @@
             "who is my teacher",
             "who is my teacher for my class",
             "who is my professor",
+            "what professor is teaching {course}",
+            "what person is teaching {course}",
             "who teaches my class",
             "who is teaching my class",
             "who is my professor for {course}",
