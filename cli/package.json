@@ -13,7 +13,7 @@
   "author": "Byron Jenkins",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.18.0",
+    "axios": "^0.18.1",
     "commander": "^2.20.0",
     "download": "^7.1.0",
     "html2plaintext": "^2.1.2",
